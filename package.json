@@ -2,7 +2,7 @@
   "name": "trading-platform-admin",
   "version": "1.0.0",
   "description": "Trading Platform Admin Dashboard",
-  "main": "dashboard-standalone.html",
+  "main": "index.html",
   "scripts": {
     "dev": "npx serve . -p 3000",
     "build": "echo 'Static files ready for deployment'",
