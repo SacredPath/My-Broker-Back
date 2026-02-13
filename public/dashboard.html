@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Trading Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1f2937;
+            --light-bg: #f9fafb;
+            --border-color: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light-bg);
+            color: var(--text-primary);
+        }
+
+        .dashboard-container {
+            display: block;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--dark-bg);
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: var(--primary-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-top: 60px; /* Account for sticky nav */
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background: var(--light-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success-color);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger-color);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            color: var(--success-color);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-color);
+        }
+
+        /* Tables */
+        .section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .section-content {
+            padding: 0;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--light-bg);
+            padding: 12px 20px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .table tr:hover {
+            background: var(--light-bg);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .section {
+                margin-bottom: 20px;
+            }
+
+            .filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .section {
+                margin-bottom: 15px;
+            }
+
+            .filters {
+                padding: 15px;
+            }
+
+            .table {
+                font-size: 12px;
+            }
+        }
+
+            .sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1>Dashboard Overview</h1>
+                <div class="header-actions">
+                    <span id="last-updated">Last updated: --</span>
+                    <button class="btn btn-secondary" onclick="refreshData()">Refresh</button>
+                    <button class="btn btn-primary" onclick="logout()">Logout</button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Statistics Grid -->
+                <div class="stats-grid" id="stats-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading dashboard data...</p>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <a href="audit.html" class="btn btn-secondary">View All</a>
+                    </div>
+                    <div class="section-content">
+                        <div id="recent-activity" class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading activity data...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pending Items -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2>Pending Items</h2>
+                        <a href="#" class="btn btn-secondary">View All</a>
+                    </div>
+                    <div class="section-content">
+                        <div id="pending-items" class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading pending items...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="env.js"></script>
+    <script src="api.js"></script>
+    <script src="modal.js"></script>
+    <script src="navigation.js"></script>
+    <script>
+        // Dashboard functionality
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Admin Dashboard loaded successfully');
+            
+            // Navigation will handle authentication check
+            // Initialize dashboard data
+            await loadDashboardData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+
+        async function loadDashboardData() {
+            try {
+                console.log('Loading dashboard data...');
+                
+                // Get dashboard statistics
+                const stats = await window.AdminAPI.getDashboardStats();
+                console.log('Dashboard stats:', stats);
+                
+                // Update statistics grid
+                updateStatsGrid(stats);
+                
+                // Update last updated time
+                document.getElementById('last-updated').textContent = 
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+                
+                // Load recent activity
+                await loadRecentActivity();
+                
+                // Load pending items
+                await loadPendingItems();
+                
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                showError('Failed to load dashboard data. Please try again.');
+            }
+        }
+
+        function updateStatsGrid(stats) {
+            const statsGrid = document.getElementById('stats-grid');
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value">${stats.totalUsers.toLocaleString()}</div>
+                    <div class="stat-change">Registered users</div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-label">Active Signals</div>
+                    <div class="stat-value">${stats.activeSignals.toLocaleString()}</div>
+                    <div class="stat-change">Trading signals</div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-label">Pending Deposits</div>
+                    <div class="stat-value">${stats.pendingDeposits.toLocaleString()}</div>
+                    <div class="stat-change">Awaiting approval</div>
+                </div>
+                
+                <div class="stat-card danger">
+                    <div class="stat-label">Pending Withdrawals</div>
+                    <div class="stat-value">${stats.pendingWithdrawals.toLocaleString()}</div>
+                    <div class="stat-change">Awaiting approval</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Total Positions</div>
+                    <div class="stat-value">${stats.totalPositions.toLocaleString()}</div>
+                    <div class="stat-change">Active trades</div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-label">Open Support Tickets</div>
+                    <div class="stat-value">${stats.openSupportTickets.toLocaleString()}</div>
+                    <div class="stat-change">Customer support</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Audit Logs</div>
+                    <div class="stat-value">${stats.totalAuditLogs.toLocaleString()}</div>
+                    <div class="stat-change">System activity</div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-label">Notifications</div>
+                    <div class="stat-value">${stats.totalNotifications.toLocaleString()}</div>
+                    <div class="stat-change">System alerts</div>
+                </div>
+            `;
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const auditLogs = await window.AdminAPI.getAuditLogs(10);
+                const activityContainer = document.getElementById('recent-activity');
+                
+                if (auditLogs.length === 0) {
+                    activityContainer.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                            <p>No recent activity found</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                activityContainer.innerHTML = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Action</th>
+                                <th>Actor</th>
+                                <th>Target</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${auditLogs.map(log => `
+                                <tr>
+                                    <td>${formatTime(log.created_at)}</td>
+                                    <td>${log.action}</td>
+                                    <td>${log.actor_role || 'System'}</td>
+                                    <td>${log.target_user_id || 'N/A'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+            } catch (error) {
+                console.error('Failed to load recent activity:', error);
+                document.getElementById('recent-activity').innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: var(--danger-color);">
+                        <p>Failed to load activity data</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadPendingItems() {
+            try {
+                const [deposits, withdrawals] = await Promise.all([
+                    window.AdminAPI.getDeposits('pending'),
+                    window.AdminAPI.getWithdrawals('pending')
+                ]);
+                
+                const pendingContainer = document.getElementById('pending-items');
+                
+                if (deposits.length === 0 && withdrawals.length === 0) {
+                    pendingContainer.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                            <p>No pending items found</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '<table class="table"><thead><tr><th>Type</th><th>User</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+                
+                deposits.forEach(deposit => {
+                    html += `
+                        <tr>
+                            <td><span class="badge badge-warning">Deposit</span></td>
+                            <td>${deposit.user_id}</td>
+                            <td>$${deposit.amount}</td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                            <td>
+                                <button class="btn btn-primary" onclick="approveDeposit('${deposit.id}')">Approve</button>
+                                <button class="btn btn-secondary" onclick="rejectDeposit('${deposit.id}')">Reject</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                withdrawals.forEach(withdrawal => {
+                    html += `
+                        <tr>
+                            <td><span class="badge badge-info">Withdrawal</span></td>
+                            <td>${withdrawal.user_id}</td>
+                            <td>$${withdrawal.amount}</td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                            <td>
+                                <button class="btn btn-primary" onclick="approveWithdrawal('${withdrawal.id}')">Approve</button>
+                                <button class="btn btn-secondary" onclick="rejectWithdrawal('${withdrawal.id}')">Reject</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                pendingContainer.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Failed to load pending items:', error);
+                document.getElementById('pending-items').innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: var(--danger-color);">
+                        <p>Failed to load pending items</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function approveDeposit(depositId) {
+            try {
+                await window.AdminAPI.approveDeposit(depositId);
+                window.modal.success('Deposit approved successfully!');
+                await loadDashboardData();
+            } catch (error) {
+                window.modal.error('Failed to approve deposit: ' + error.message);
+            }
+        }
+
+        async function rejectDeposit(depositId) {
+            try {
+                const reason = prompt('Reason for rejection:');
+                if (reason) {
+                    await window.AdminAPI.rejectDeposit(depositId, reason);
+                    window.modal.success('Deposit rejected successfully!');
+                    await loadDashboardData();
+                }
+            } catch (error) {
+                window.modal.error('Failed to reject deposit: ' + error.message);
+            }
+        }
+
+        async function approveWithdrawal(withdrawalId) {
+            try {
+                await window.AdminAPI.approveWithdrawal(withdrawalId);
+                window.modal.success('Withdrawal approved successfully!');
+                await loadDashboardData();
+            } catch (error) {
+                window.modal.error('Failed to approve withdrawal: ' + error.message);
+            }
+        }
+
+        async function rejectWithdrawal(withdrawalId) {
+            try {
+                const reason = prompt('Reason for rejection:');
+                if (reason) {
+                    await window.AdminAPI.rejectWithdrawal(withdrawalId, reason);
+                    window.modal.success('Withdrawal rejected successfully!');
+                    await loadDashboardData();
+                }
+            } catch (error) {
+                window.modal.error('Failed to reject withdrawal: ' + error.message);
+            }
+        }
+
+        function refreshData() {
+            loadDashboardData();
+        }
+
+        function logout() {
+            window.modal.confirm('Are you sure you want to logout?', async () => {
+                try {
+                    await window.AdminAPI.createAuditLog('admin_logout', null, 'Admin logged out');
+                    window.AdminAPI.signOut();
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    window.AdminAPI.signOut();
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
+            return date.toLocaleDateString();
+        }
+
+        function showError(message) {
+            if (window.modal) {
+                window.modal.error(message);
+            } else {
+                alert(message);
+            }
+        }
+    </script>
+</body>
+</html>
