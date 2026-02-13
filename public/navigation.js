@@ -280,10 +280,8 @@ class AdminNavigation {
                             <a href="users.html" data-page="users">User Management</a>
                             <a href="deposits.html" data-page="deposits">Deposits</a>
                             <a href="withdrawals.html" data-page="withdrawals">Withdrawals</a>
-                            <a href="trading.html" data-page="trading">Trading</a>
                             <a href="kyc.html" data-page="kyc">KYC</a>
                             <a href="support.html" data-page="support">Support</a>
-                            <a href="audit.html" data-page="audit">Audit Logs</a>
                             <a href="settings.html" data-page="settings">Settings</a>
                         </div>
                     </div>
