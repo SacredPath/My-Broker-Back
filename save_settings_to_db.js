@@ -125,33 +125,80 @@ async function savePayPalSettingsToDB() {
     try {
         const settings = window.backofficeSettings.settings.paymentMethods.paypal;
         
-        const response = await fetch('/api/deposit-methods', {
-            method: 'POST',
+        const supabaseUrl = window.AdminAPI.supabaseUrl;
+        const supabaseKey = window.AdminAPI.supabaseKey;
+        const authToken = sessionStorage.getItem('adminToken');
+        
+        // First check if PayPal settings already exist
+        const checkResponse = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?method_type=eq.paypal`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
-            },
-            body: JSON.stringify({
-                query: `
-                    UPDATE deposit_methods 
-                    SET 
-                        paypal_email = '${settings.email}',
-                        paypal_business_name = '${settings.businessName}',
-                        instructions = '${settings.instructions}',
-                        min_amount = ${settings.minAmount},
-                        max_amount = ${settings.maxAmount},
-                        fee_percentage = ${settings.feePercentage},
-                        fixed_fee = ${settings.fixedFee},
-                        processing_time_hours = ${settings.processingTimeHours},
-                        is_active = ${settings.enabled},
-                        updated_at = NOW()
-                    WHERE method_type = 'paypal' AND currency = 'USD'
-                `
-            })
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${authToken}`
+            }
         });
+        
+        if (!checkResponse.ok) {
+            throw new Error('Failed to check existing PayPal settings');
+        }
+        
+        const existingRecords = await checkResponse.json();
+        
+        let response;
+        if (existingRecords.length === 0) {
+            // Create new record
+            response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    method_type: 'paypal',
+                    paypal_email: settings.email,
+                    paypal_business_name: settings.businessName,
+                    instructions: settings.instructions,
+                    min_amount: settings.minAmount,
+                    max_amount: settings.maxAmount,
+                    fee_percentage: settings.feePercentage,
+                    fixed_fee: settings.fixedFee,
+                    processing_time_hours: settings.processingTimeHours,
+                    is_active: settings.enabled,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+        } else {
+            // Update existing record
+            const paypalRecord = existingRecords[0];
+            response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?id=eq.${paypalRecord.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    paypal_email: settings.email,
+                    paypal_business_name: settings.businessName,
+                    instructions: settings.instructions,
+                    min_amount: settings.minAmount,
+                    max_amount: settings.maxAmount,
+                    fee_percentage: settings.feePercentage,
+                    fixed_fee: settings.fixedFee,
+                    processing_time_hours: settings.processingTimeHours,
+                    is_active: settings.enabled,
+                    updated_at: new Date().toISOString()
+                })
+            });
+        }
 
         if (!response.ok) {
-            throw new Error('Failed to update PayPal settings');
+            const errorText = await response.text();
+            throw new Error(`Failed to update PayPal settings: ${response.status} ${errorText}`);
         }
 
         const result = await response.json();
@@ -169,32 +216,79 @@ async function saveBitcoinSettingsToDB() {
     try {
         const settings = window.backofficeSettings.settings.paymentMethods.crypto.btc;
         
-        const response = await fetch('/api/deposit-methods', {
-            method: 'POST',
+        const supabaseUrl = window.AdminAPI.supabaseUrl;
+        const supabaseKey = window.AdminAPI.supabaseKey;
+        const authToken = sessionStorage.getItem('adminToken');
+        
+        // First check if Bitcoin settings already exist
+        const checkResponse = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?method_type=eq.crypto&currency=eq.BTC`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
-            },
-            body: JSON.stringify({
-                query: `
-                    UPDATE deposit_methods 
-                    SET 
-                        address = '${settings.address}',
-                        instructions = '${settings.instructions}',
-                        min_amount = ${settings.minAmount},
-                        max_amount = ${settings.maxAmount},
-                        fee_percentage = ${settings.feePercentage},
-                        fixed_fee = ${settings.fixedFee},
-                        processing_time_hours = ${settings.processingTimeHours},
-                        is_active = ${settings.enabled},
-                        updated_at = NOW()
-                    WHERE method_type = 'crypto' AND currency = 'BTC'
-                `
-            })
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${authToken}`
+            }
         });
+        
+        if (!checkResponse.ok) {
+            throw new Error('Failed to check existing Bitcoin settings');
+        }
+        
+        const existingRecords = await checkResponse.json();
+        
+        let response;
+        if (existingRecords.length === 0) {
+            // Create new record
+            response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    method_type: 'crypto',
+                    currency: 'BTC',
+                    address: settings.address,
+                    instructions: settings.instructions,
+                    min_amount: settings.minAmount,
+                    max_amount: settings.maxAmount,
+                    fee_percentage: settings.feePercentage,
+                    fixed_fee: settings.fixedFee,
+                    processing_time_hours: settings.processingTimeHours,
+                    is_active: settings.enabled,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+        } else {
+            // Update existing record
+            const btcRecord = existingRecords[0];
+            response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?id=eq.${btcRecord.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    address: settings.address,
+                    instructions: settings.instructions,
+                    min_amount: settings.minAmount,
+                    max_amount: settings.maxAmount,
+                    fee_percentage: settings.feePercentage,
+                    fixed_fee: settings.fixedFee,
+                    processing_time_hours: settings.processingTimeHours,
+                    is_active: settings.enabled,
+                    updated_at: new Date().toISOString()
+                })
+            });
+        }
 
         if (!response.ok) {
-            throw new Error('Failed to update Bitcoin settings');
+            const errorText = await response.text();
+            throw new Error(`Failed to update Bitcoin settings: ${response.status} ${errorText}`);
         }
 
         const result = await response.json();
@@ -212,32 +306,79 @@ async function saveUSDTSettingsToDB() {
     try {
         const settings = window.backofficeSettings.settings.paymentMethods.crypto.usdt;
         
-        const response = await fetch('/api/deposit-methods', {
-            method: 'POST',
+        const supabaseUrl = window.AdminAPI.supabaseUrl;
+        const supabaseKey = window.AdminAPI.supabaseKey;
+        const authToken = sessionStorage.getItem('adminToken');
+        
+        // First check if USDT settings already exist
+        const checkResponse = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?method_type=eq.crypto&currency=eq.USDT`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
-            },
-            body: JSON.stringify({
-                query: `
-                    UPDATE deposit_methods 
-                    SET 
-                        address = '${settings.address}',
-                        instructions = '${settings.instructions}',
-                        min_amount = ${settings.minAmount},
-                        max_amount = ${settings.maxAmount},
-                        fee_percentage = ${settings.feePercentage},
-                        fixed_fee = ${settings.fixedFee},
-                        processing_time_hours = ${settings.processingTimeHours},
-                        is_active = ${settings.enabled},
-                        updated_at = NOW()
-                    WHERE method_type = 'crypto' AND currency = 'USDT'
-                `
-            })
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${authToken}`
+            }
         });
+        
+        if (!checkResponse.ok) {
+            throw new Error('Failed to check existing USDT settings');
+        }
+        
+        const existingRecords = await checkResponse.json();
+        
+        let response;
+        if (existingRecords.length === 0) {
+            // Create new record
+            response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    method_type: 'crypto',
+                    currency: 'USDT',
+                    address: settings.address,
+                    instructions: settings.instructions,
+                    min_amount: settings.minAmount,
+                    max_amount: settings.maxAmount,
+                    fee_percentage: settings.feePercentage,
+                    fixed_fee: settings.fixedFee,
+                    processing_time_hours: settings.processingTimeHours,
+                    is_active: settings.enabled,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+        } else {
+            // Update existing record
+            const usdtRecord = existingRecords[0];
+            response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?id=eq.${usdtRecord.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    address: settings.address,
+                    instructions: settings.instructions,
+                    min_amount: settings.minAmount,
+                    max_amount: settings.maxAmount,
+                    fee_percentage: settings.feePercentage,
+                    fixed_fee: settings.fixedFee,
+                    processing_time_hours: settings.processingTimeHours,
+                    is_active: settings.enabled,
+                    updated_at: new Date().toISOString()
+                })
+            });
+        }
 
         if (!response.ok) {
-            throw new Error('Failed to update USDT settings');
+            const errorText = await response.text();
+            throw new Error(`Failed to update USDT settings: ${response.status} ${errorText}`);
         }
 
         const result = await response.json();
