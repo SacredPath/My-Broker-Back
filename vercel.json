@@ -1,18 +1,18 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".",
+  "outputDirectory": "public",
   "installCommand": "npm install",
   "framework": null,
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/public/index.html"
     }
   ],
   "routes": [
     {
       "src": "/",
-      "dest": "/index.html"
+      "dest": "/public/index.html"
     }
   ]
 }
