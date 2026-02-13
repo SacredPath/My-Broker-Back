@@ -663,8 +663,10 @@
     <!-- Scripts -->
     <script src="env.js"></script>
     <script src="api.js"></script>
-    <script src="modal.js"></script>
+    <script src="balance-integration.js"></script>
     <script src="navigation.js"></script>
+    <script src="modal.js"></script>
+    <script src="users.js"></script>
     <script>
         let currentUsers = [];
         let selectedUsers = [];
@@ -942,28 +944,66 @@
             const user = currentUsers.find(u => u.user_id === userId);
             if (!user) return;
 
-            // Check if user has balance in a separate table or field
             try {
-                // For now, show a message since balance field doesn't exist in profiles table
-                // Include edit option for future implementation
-                window.modal.info(`
+                // Fetch real balance data using balance manager
+                const balanceData = await window.balanceManager.getUserBalances(userId);
+                
+                if (Object.keys(balanceData.wallets).length === 0) {
+                    window.modal.info(`
+                        <div style="margin-bottom: 15px;">
+                            <strong>Balance Information for ${user.display_name || user.email}</strong>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            No wallet data found for this user.<br>
+                            The user may not have any active wallets or balances.
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <small style="color: var(--text-secondary);">
+                                <strong>Total Balance:</strong> $0.00
+                            </small>
+                        </div>
+                    `);
+                    return;
+                }
+
+                let balanceHTML = `
                     <div style="margin-bottom: 15px;">
                         <strong>Balance Information for ${user.display_name || user.email}</strong>
                     </div>
                     <div style="margin-bottom: 15px;">
-                        Current balance data is not available in the user profile table.<br>
-                        This may require checking separate balance/wallet tables.<br><br>
-                        <em>Future enhancement: Add balance management integration</em>
+                        <strong>Total Balance:</strong> $${balanceData.totalBalance.toLocaleString()}
                     </div>
-                    <div style="margin-bottom: 15px;">
-                        <small style="color: var(--text-secondary);">
-                            User ID: <code>${user.user_id}</code><br>
-                            Email: ${user.email}<br>
-                            KYC Status: ${user.kyc_status || 'not_submitted'}<br>
-                            Account Status: ${user.is_frozen ? 'Frozen' : 'Active'}
-                        </small>
-                    </div>
-                `);
+                `;
+
+                // Add wallet details
+                Object.entries(balanceData.wallets).forEach(([currency, wallet]) => {
+                    balanceHTML += `
+                        <div style="margin: 15px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <strong>${currency}</strong>
+                                <span style="color: var(--primary-color); font-weight: 600;">$${wallet.balance.toLocaleString()}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 14px;">
+                                <div>
+                                    <span style="color: var(--text-secondary);">Available:</span>
+                                    <span style="color: var(--success-color);">$${wallet.available.toLocaleString()}</span>
+                                </div>
+                                <div>
+                                    <span style="color: var(--text-secondary);">Frozen:</span>
+                                    <span style="color: var(--error-color);">$${wallet.frozen.toLocaleString()}</span>
+                                </div>
+                            </div>
+                            ${wallet.address ? `
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px;">Address:</div>
+                                    <div style="font-family: monospace; font-size: 12px; word-break: break-all;">${wallet.address}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                window.modal.info(balanceHTML);
                 
             } catch (error) {
                 window.modal.error('Failed to load balance information: ' + error.message);

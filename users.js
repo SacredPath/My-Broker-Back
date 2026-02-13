@@ -235,13 +235,13 @@ class BackOfficeUsers {
     }
 
     this.filteredUsers = filtered;
-    this.renderUsers();
+    this.renderUserTable();
     this.renderPagination();
   }
 
-  renderUsers() {
+  async renderUserTable() {
     const tbody = document.getElementById('users-tbody');
-    if (!tbody) return;
+    tbody.innerHTML = '';
 
     if (this.filteredUsers.length === 0) {
       tbody.innerHTML = `
@@ -264,7 +264,7 @@ class BackOfficeUsers {
     tbody.innerHTML = this.filteredUsers.map(user => this.formatUserRow(user)).join('');
   }
 
-  formatUserRow(user) {
+  async formatUserRow(user) {
     const fullName = `${user.profile.first_name} ${user.profile.last_name}`;
     const statusBadge = this.getStatusBadge(user.status);
     const kycBadge = this.getKYCBadge(user.kyc_status);
@@ -272,9 +272,10 @@ class BackOfficeUsers {
     const joinedDate = new Date(user.created_at).toLocaleDateString();
     const lastActive = this.getTimeAgo(user.last_active);
     
-    // Calculate total balance across all wallets
-    const totalBalance = Object.values(user.wallets || {}).reduce((sum, wallet) => sum + wallet.balance, 0);
-    const balanceText = totalBalance > 0 ? `$${totalBalance.toLocaleString()}` : '$0';
+    // Calculate total balance using balance manager
+    const balanceData = await window.balanceManager.getUserBalances(user.id);
+    const totalBalance = balanceData.totalBalance;
+    const balanceText = window.balanceManager.getBalanceText(balanceData.wallets);
     
     const positionCount = user.positions?.length || 0;
 
@@ -527,33 +528,6 @@ class BackOfficeUsers {
               <div style="font-weight: 500;">${user.profile.first_name} ${user.profile.last_name}</div>
             </div>
             <div>
-              <div style="font-size: 12px; color: var(--backoffice-text-muted); margin-bottom: 4px;">Email</div>
-              <div style="font-weight: 500;">${user.email}</div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--backoffice-text-muted); margin-bottom: 4px;">Phone</div>
-              <div style="font-weight: 500;">${user.profile.phone || 'Not provided'}</div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--backoffice-text-muted); margin-bottom: 4px;">Country</div>
-              <div style="font-weight: 500;">${user.profile.country || 'Not provided'}</div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--backoffice-text-muted); margin-bottom: 4px;">Status</div>
-              <div>${this.getStatusBadge(user.status)}</div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--backoffice-text-muted); margin-bottom: 4px;">KYC Status</div>
-              <div>${this.getKYCBadge(user.kyc_status)}</div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--backoffice-text-muted); margin-bottom: 4px;">Role</div>
-              <div>${this.getRoleBadge(user.role)}</div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--backoffice-text-muted); margin-bottom: 4px;">Email Verified</div>
-              <div>${user.email_verified ? '✅ Yes' : '❌ No'}</div>
-            </div>
           </div>
         </div>
 
@@ -561,7 +535,7 @@ class BackOfficeUsers {
         <div>
           <h4 style="color: var(--backoffice-text-primary); margin-bottom: 16px; font-size: 16px; font-weight: 600;">Wallet Balances</h4>
           <div style="display: grid; gap: 12px;">
-            ${Object.entries(user.wallets || {}).map(([currency, wallet]) => `
+            ${Object.entries(balanceData.wallets || {}).map(([currency, wallet]) => `
               <div style="padding: 16px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid var(--backoffice-border);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <div style="font-weight: 600; color: var(--backoffice-text-primary);">${currency}</div>
@@ -577,6 +551,12 @@ class BackOfficeUsers {
                     <span style="color: var(--backoffice-error);">$${wallet.frozen.toLocaleString()}</span>
                   </div>
                 </div>
+                ${wallet.address ? `
+                  <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--backoffice-border);">
+                    <div style="font-size: 11px; color: var(--backoffice-text-muted);">Address:</div>
+                    <div style="font-size: 11px; color: var(--backoffice-text-secondary); word-break: break-all;">${wallet.address}</div>
+                  </div>
+                ` : ''}
               </div>
             `).join('')}
           </div>
