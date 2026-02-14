@@ -525,6 +525,178 @@ class AdminAPI {
             throw error;
         }
     }
+
+    // Balance Management
+    async getAllUserBalances() {
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) throw new Error('Not authenticated');
+
+        try {
+            // Get all user_balances
+            const userBalances = await this.request('user_balances?select=*&order=updated_at.desc', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Get all wallet_balances
+            const walletBalances = await this.request('wallet_balances?select=*&order=updated_at.desc', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Get user info for display
+            const users = await this.request('profiles?select=id,user_id,email,display_name,first_name,last_name', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Combine data
+            const combinedBalances = {};
+            
+            // Process user_balances
+            userBalances.forEach(balance => {
+                const key = `${balance.user_id}_${balance.currency}`;
+                const user = users.find(u => u.user_id === balance.user_id);
+                combinedBalances[key] = {
+                    user_id: balance.user_id,
+                    user_email: user?.email || 'Unknown',
+                    user_name: user?.display_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Unknown',
+                    currency: balance.currency,
+                    amount: balance.amount,
+                    usd_value: balance.usd_value,
+                    type: 'user_balance',
+                    updated_at: balance.updated_at,
+                    available: null,
+                    locked: null,
+                    total: null
+                };
+            });
+
+            // Process wallet_balances and merge
+            walletBalances.forEach(wallet => {
+                const key = `${wallet.user_id}_${wallet.currency}`;
+                const user = users.find(u => u.user_id === wallet.user_id);
+                
+                if (combinedBalances[key]) {
+                    // Merge with existing user_balance
+                    combinedBalances[key].available = wallet.available;
+                    combinedBalances[key].locked = wallet.locked;
+                    combinedBalances[key].total = wallet.total;
+                    combinedBalances[key].type = 'combined';
+                } else {
+                    // Create new entry for wallet-only balance
+                    combinedBalances[key] = {
+                        user_id: wallet.user_id,
+                        user_email: user?.email || 'Unknown',
+                        user_name: user?.display_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Unknown',
+                        currency: wallet.currency,
+                        amount: wallet.total || wallet.available,
+                        usd_value: null,
+                        type: 'wallet_balance',
+                        updated_at: wallet.updated_at,
+                        available: wallet.available,
+                        locked: wallet.locked,
+                        total: wallet.total
+                    };
+                }
+            });
+
+            return Object.values(combinedBalances);
+        } catch (error) {
+            console.error('Failed to get all user balances:', error);
+            throw error;
+        }
+    }
+
+    async updateUserBalance(userId, currency, updates) {
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) throw new Error('Not authenticated');
+
+        const results = {};
+
+        try {
+            // Update user_balances if amount or usd_value is provided
+            if (updates.amount !== undefined || updates.usd_value !== undefined) {
+                const userBalanceUpdate = {};
+                if (updates.amount !== undefined) userBalanceUpdate.amount = updates.amount;
+                if (updates.usd_value !== undefined) userBalanceUpdate.usd_value = updates.usd_value;
+
+                // Check if record exists
+                const existing = await this.request(`user_balances?user_id=eq.${userId}&currency=eq.${currency}`);
+                
+                if (existing.length > 0) {
+                    // Update existing record
+                    results.user_balance = await this.request(`user_balances?user_id=eq.${userId}&currency=eq.${currency}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({
+                            ...userBalanceUpdate,
+                            updated_at: new Date().toISOString()
+                        })
+                    });
+                } else {
+                    // Create new record
+                    results.user_balance = await this.request('user_balances', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            user_id: userId,
+                            currency: currency,
+                            amount: updates.amount || 0,
+                            usd_value: updates.usd_value || 0,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        })
+                    });
+                }
+            }
+
+            // Update wallet_balances if available, locked, or total is provided
+            if (updates.available !== undefined || updates.locked !== undefined || updates.total !== undefined) {
+                const walletUpdate = {};
+                if (updates.available !== undefined) walletUpdate.available = updates.available;
+                if (updates.locked !== undefined) walletUpdate.locked = updates.locked;
+                if (updates.total !== undefined) walletUpdate.total = updates.total;
+
+                // Check if record exists
+                const existing = await this.request(`wallet_balances?user_id=eq.${userId}&currency=eq.${currency}`);
+                
+                if (existing.length > 0) {
+                    // Update existing record
+                    results.wallet_balance = await this.request(`wallet_balances?user_id=eq.${userId}&currency=eq.${currency}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({
+                            ...walletUpdate,
+                            updated_at: new Date().toISOString()
+                        })
+                    });
+                } else {
+                    // Create new record
+                    results.wallet_balance = await this.request('wallet_balances', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            user_id: userId,
+                            currency: currency,
+                            available: updates.available || 0,
+                            locked: updates.locked || 0,
+                            total: updates.total || 0,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        })
+                    });
+                }
+            }
+
+            // Create audit log
+            await this.createAuditLog('balance_update', userId, `Admin updated ${currency} balance`, null, updates);
+
+            return results;
+        } catch (error) {
+            console.error('Failed to update user balance:', error);
+            throw error;
+        }
+    }
 }
 
 // Initialize global API instance

@@ -278,6 +278,7 @@ class AdminNavigation {
                         <div class="nav-dropdown-menu">
                             <a href="dashboard.html" data-page="dashboard">Dashboard</a>
                             <a href="users.html" data-page="users">User Management</a>
+                            <a href="balance-management.html" data-page="balance-management">Balance Management</a>
                             <a href="deposits.html" data-page="deposits">Deposits</a>
                             <a href="withdrawals.html" data-page="withdrawals">Withdrawals</a>
                             <a href="kyc.html" data-page="kyc">KYC</a>

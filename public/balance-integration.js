@@ -13,59 +13,74 @@ class BalanceManager {
      * Get user balance data from wallet tables
      */
     async getUserBalances(userId) {
+        console.log('BalanceManager: Fetching balances for user:', userId);
+        
         // Check cache first
         const cached = this.cache.get(userId);
         if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+            console.log('BalanceManager: Using cached data for user:', userId);
             return cached.data;
         }
 
         try {
-            // Fetch from user_wallets table
-            const { data: userWallets, error: walletsError } = await window.API.request('user_wallets?user_id=eq.' + userId);
+            // Fetch from user_balances table
+            console.log('BalanceManager: Fetching user_balances...');
+            const { data: userBalances, error: userBalancesError } = await window.API.request('user_balances?user_id=eq.' + userId);
+            console.log('BalanceManager: user_balances result:', { data: userBalances, error: userBalancesError });
             
-            // Fetch from crypto_wallets table  
-            const { data: cryptoWallets, error: cryptoError } = await window.API.request('crypto_wallets?user_id=eq.' + userId);
+            // Fetch from wallet_balances table  
+            console.log('BalanceManager: Fetching wallet_balances...');
+            const { data: walletBalances, error: walletBalancesError } = await window.API.request('wallet_balances?user_id=eq.' + userId);
+            console.log('BalanceManager: wallet_balances result:', { data: walletBalances, error: walletBalancesError });
 
-            if (walletsError || cryptoError) {
-                console.error('Error fetching wallet data:', walletsError || cryptoError);
-                return { wallets: {}, totalBalance: 0 };
+            if (userBalancesError || walletBalancesError) {
+                console.error('BalanceManager: Error fetching balance data:', userBalancesError || walletBalancesError);
+                return { wallets: {}, totalBalance: 0, error: userBalancesError || walletBalancesError };
             }
 
-            // Combine wallet data
+            // Combine balance data
             const wallets = {};
             let totalBalance = 0;
 
-            // Process user_wallets
-            if (userWallets) {
-                userWallets.forEach(wallet => {
-                    const currency = wallet.currency || 'USD';
+            // Process user_balances
+            if (userBalances && userBalances.length > 0) {
+                userBalances.forEach(balance => {
+                    const currency = balance.currency || 'USD';
                     wallets[currency] = {
-                        balance: wallet.balance || 0,
-                        available: wallet.available || 0,
-                        frozen: wallet.frozen || 0,
-                        type: wallet.type || 'fiat',
-                        last_updated: wallet.updated_at
+                        balance: balance.amount || 0,
+                        usd_value: balance.usd_value || 0,
+                        type: 'user_balance',
+                        last_updated: balance.updated_at
                     };
-                    totalBalance += wallet.balance || 0;
+                    totalBalance += parseFloat(balance.amount || 0);
                 });
             }
 
-            // Process crypto_wallets
-            if (cryptoWallets) {
-                cryptoWallets.forEach(wallet => {
-                    const currency = wallet.currency || wallet.symbol || 'BTC';
-                    wallets[currency] = {
-                        balance: wallet.balance || 0,
-                        available: wallet.available || 0,
-                        frozen: wallet.frozen || 0,
-                        type: 'crypto',
-                        address: wallet.address,
-                        network: wallet.network,
-                        last_updated: wallet.updated_at
-                    };
-                    totalBalance += wallet.balance || 0;
+            // Process wallet_balances
+            if (walletBalances && walletBalances.length > 0) {
+                walletBalances.forEach(wallet => {
+                    const currency = wallet.currency || 'USD';
+                    // If wallet already exists from user_balances, merge the data
+                    if (wallets[currency]) {
+                        wallets[currency].available = wallet.available || 0;
+                        wallets[currency].locked = wallet.locked || 0;
+                        wallets[currency].total = wallet.total || 0;
+                        wallets[currency].type = 'combined';
+                    } else {
+                        wallets[currency] = {
+                            balance: wallet.total || wallet.available || 0,
+                            available: wallet.available || 0,
+                            locked: wallet.locked || 0,
+                            total: wallet.total || 0,
+                            type: 'wallet_balance',
+                            last_updated: wallet.updated_at
+                        };
+                        totalBalance += parseFloat(wallet.total || wallet.available || 0);
+                    }
                 });
             }
+
+            console.log('BalanceManager: Combined wallet data:', { wallets, totalBalance });
 
             // Cache the result
             this.cache.set(userId, {
@@ -75,8 +90,8 @@ class BalanceManager {
 
             return { wallets, totalBalance };
         } catch (error) {
-            console.error('Error in getUserBalances:', error);
-            return { wallets: {}, totalBalance: 0 };
+            console.error('BalanceManager: Error in getUserBalances:', error);
+            return { wallets: {}, totalBalance: 0, error: error.message };
         }
     }
 
