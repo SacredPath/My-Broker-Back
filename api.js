@@ -117,7 +117,12 @@ class AdminAPI {
                         currency = body.currency;
                     }
                     
-                    console.log('Extracted params:', { userId, currency, body });
+                    console.log('Extracted params:', { userId, currency, body, endpoint, method: options.method });
+                    
+                    // Validate required parameters
+                    if (!userId || !currency) {
+                        throw new Error(`Missing required parameters: user_id=${userId}, currency=${currency}`);
+                    }
                     
                     // Insert into bypass table
                     const bypassResponse = await fetch(`${this.supabaseUrl}/rest/v1/admin_balance_updates`, {
