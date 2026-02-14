@@ -90,6 +90,8 @@ class AdminAPI {
             'apikey': this.supabaseKey,
             'Authorization': `Bearer ${this.supabaseKey}`, // Use service role key for auth
             'Content-Type': 'application/json',
+            'Prefer': 'return=minimal', // Minimize response
+            'Role': 'service_role', // Explicitly set service role
             ...options.headers
         };
 
