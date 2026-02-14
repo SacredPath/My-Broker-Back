@@ -83,13 +83,8 @@ class AdminAPI {
         }
     }
 
-    // Service role request method that bypasses RLS using Supabase client
+    // Service role request method that bypasses RLS using RPC functions
     async serviceRequest(endpoint, options = {}) {
-        // Use Supabase client for proper service role handling
-        const { createClient } = await import('@supabase/supabase-js');
-        
-        const supabase = createClient(this.supabaseUrl, this.supabaseKey);
-        
         const headers = {
             'apikey': this.supabaseKey,
             'Authorization': `Bearer ${this.supabaseKey}`,
@@ -101,15 +96,19 @@ class AdminAPI {
         try {
             console.log(`Service API Request: ${endpoint} ${options.method || 'GET'}`);
             
-            // Use Supabase client for admin operations
+            // Use RPC functions for admin operations
             if (options.method === 'POST' && endpoint === 'wallet_balances') {
-                const { data, error } = await supabase
-                    .from('wallet_balances')
-                    .upsert(JSON.parse(options.body), {
-                        headers: {
-                            'Authorization': `Bearer ${this.supabaseKey}`
-                        }
-                    });
+                const body = JSON.parse(options.body);
+                const { data, error } = await fetch(`${this.supabaseUrl}/rest/v1/rpc/admin_update_wallet_balance`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        p_user_id: body.user_id,
+                        p_currency: body.currency,
+                        p_available: body.available,
+                        p_locked: body.locked
+                    })
+                }).then(res => res.json());
                 
                 if (error) {
                     console.error('Service API Error Response:', error);
