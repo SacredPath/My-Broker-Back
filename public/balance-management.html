@@ -868,7 +868,8 @@
             if (usdValue !== '') updates.usd_value = parseFloat(usdValue);
             if (available !== '') updates.available = parseFloat(available);
             if (locked !== '') updates.locked = parseFloat(locked);
-            if (total !== '') updates.total = parseFloat(total);
+            // Note: Don't send 'total' as it's a generated column in wallet_balances
+            // The database will calculate total = available + locked automatically
 
             try {
                 await window.AdminAPI.updateUserBalance(currentEditingBalance.user_id, currentEditingBalance.currency, updates);

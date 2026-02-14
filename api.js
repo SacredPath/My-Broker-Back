@@ -701,11 +701,12 @@ class AdminAPI {
             }
 
             // Update wallet_balances if available, locked, or total is provided
-            if (updates.available !== undefined || updates.locked !== undefined || updates.total !== undefined) {
+            if (updates.available !== undefined || updates.locked !== undefined) {
                 const walletUpdate = {};
                 if (updates.available !== undefined) walletUpdate.available = updates.available;
                 if (updates.locked !== undefined) walletUpdate.locked = updates.locked;
-                if (updates.total !== undefined) walletUpdate.total = updates.total;
+                // Don't try to update 'total' if it's a generated column
+                // Only update available and locked columns
 
                 // Check if record exists
                 const existing = await this.request(`wallet_balances?user_id=eq.${userId}&currency=eq.${currency}`);
@@ -720,20 +721,18 @@ class AdminAPI {
                         })
                     });
                 } else {
-                    // Create new record
-                    const createResponse = await this.request('wallet_balances', {
+                    // Create new record - only insert available and locked, not total
+                    results.wallet_balance = await this.request('wallet_balances', {
                         method: 'POST',
                         body: JSON.stringify({
                             user_id: userId,
                             currency: currency,
                             available: updates.available || 0,
                             locked: updates.locked || 0,
-                            total: updates.total || 0,
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         })
                     });
-                    results.wallet_balance = createResponse;
                 }
             }
 
