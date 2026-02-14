@@ -69,8 +69,14 @@ class AdminAPI {
                 }
             }
 
-            const data = await response.json();
-            return data;
+            // For all other responses, try to parse JSON
+            try {
+                const data = await response.json();
+                return data;
+            } catch (jsonError) {
+                // Return error object if JSON parsing fails
+                return { error: true, message: 'Invalid response format' };
+            }
         } catch (error) {
             console.error('API Error:', error);
             throw error;
