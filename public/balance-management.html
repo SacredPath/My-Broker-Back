@@ -3,233 +3,828 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balance Management - Admin</title>
-    <link rel="stylesheet" href="backoffice.css">
+    <title>Balance Management - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1f2937;
+            --light-bg: #f9fafb;
+            --border-color: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light-bg);
+            color: var(--text-primary);
+        }
+
+        .dashboard-container {
+            display: block;
+            min-height: 100vh;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-top: 60px; /* Account for sticky nav */
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background: var(--light-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 30px;
+        }
+
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Tables */
+        .section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--light-bg);
+            padding: 12px 20px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .table tr:hover {
+            background: var(--light-bg);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-user_balance {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .badge-wallet_balance {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .badge-combined {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-dialog {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--light-bg);
+            border-radius: 8px;
+        }
+
+        .form-section h4 {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .filter-select {
+                min-width: 100%;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .modal-dialog {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group input,
+            .form-group select {
+                font-size: 14px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .btn-sm {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .filters {
+                padding: 15px;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .filter-select {
+                min-width: 100%;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .modal-dialog {
+                width: 95%;
+                margin: 15px;
+            }
+
+            .modal-body {
+                padding: 15px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-group input,
+            .form-group select {
+                font-size: 14px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .btn-sm {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .page-content {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Balance Management</h1>
-            <div class="header-actions">
-                <button onclick="refreshBalances()" class="btn btn-primary">Refresh</button>
-                <button onclick="logout()" class="btn btn-secondary">Logout</button>
-            </div>
-        </header>
+    <div class="dashboard-container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1>Balance Management</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="refreshBalances()">Refresh</button>
+                    <button class="btn btn-secondary" onclick="logout()">Logout</button>
+                </div>
+            </header>
 
-        <main>
-            <!-- Search and Filter -->
-            <section class="search-section">
-                <div class="search-controls">
-                    <input type="text" id="searchInput" placeholder="Search by email or user ID..." class="form-control">
-                    <select id="currencyFilter" class="form-control">
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Search by email, user ID, or name..." onkeyup="searchBalances()">
+                    </div>
+                    <select class="filter-select" id="currency-filter" onchange="filterBalances()">
                         <option value="">All Currencies</option>
                         <option value="USD">USD</option>
                         <option value="BTC">BTC</option>
                         <option value="ETH">ETH</option>
+                        <option value="USDT">USDT</option>
                     </select>
-                    <button onclick="searchBalances()" class="btn btn-primary">Search</button>
+                    <select class="filter-select" id="type-filter" onchange="filterBalances()">
+                        <option value="">All Types</option>
+                        <option value="user_balance">User Balance</option>
+                        <option value="wallet_balance">Wallet Balance</option>
+                        <option value="combined">Combined</option>
+                    </select>
                 </div>
-            </section>
 
-            <!-- Balance Table -->
-            <section class="balance-table-section">
-                <h2>All User Balances</h2>
-                <div class="table-container">
-                    <table id="balanceTable" class="data-table">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>Email</th>
-                                <th>Name</th>
-                                <th>Currency</th>
-                                <th>Amount</th>
-                                <th>USD Value</th>
-                                <th>Available</th>
-                                <th>Locked</th>
-                                <th>Total</th>
-                                <th>Type</th>
-                                <th>Updated</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="balanceTableBody">
-                            <tr>
-                                <td colspan="12" class="text-center">Loading balances...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                <!-- Balances Table -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2>User Balances (<span id="balances-count">0</span>)</h2>
+                    </div>
+                    <div class="table-container">
+                        <div id="balances-table-container" class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading balances...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
-    <!-- Edit Balance Modal -->
-    <div id="editBalanceModal" class="modal">
-        <div class="modal-content">
+    <!-- Balance Edit Modal -->
+    <div class="modal" id="balance-modal">
+        <div class="modal-dialog">
             <div class="modal-header">
-                <h3>Edit User Balance</h3>
-                <span class="close" onclick="closeEditModal()">&times;</span>
+                <h3 class="modal-title">Edit User Balance</h3>
+                <button class="modal-close" onclick="closeModal('balance-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label>User ID:</label>
-                    <input type="text" id="editUserId" readonly class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="text" id="editEmail" readonly class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>Currency:</label>
-                    <input type="text" id="editCurrency" readonly class="form-control">
-                </div>
-                
-                <div class="form-section">
-                    <h4>User Balance</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Amount:</label>
-                            <input type="number" id="editAmount" step="0.01" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>USD Value:</label>
-                            <input type="number" id="editUsdValue" step="0.01" class="form-control">
+                <form id="balance-form">
+                    <div class="form-group">
+                        <label>User ID</label>
+                        <input type="text" id="edit-user-id" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="edit-email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <input type="text" id="edit-currency" readonly>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>User Balance</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="number" id="edit-amount" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>USD Value</label>
+                                <input type="number" id="edit-usd-value" step="0.01" placeholder="0.00">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="form-section">
-                    <h4>Wallet Balance</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Available:</label>
-                            <input type="number" id="editAvailable" step="0.01" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Locked:</label>
-                            <input type="number" id="editLocked" step="0.01" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Total:</label>
-                            <input type="number" id="editTotal" step="0.01" class="form-control">
+                    <div class="form-section">
+                        <h4>Wallet Balance</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Available</label>
+                                <input type="number" id="edit-available" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Locked</label>
+                                <input type="number" id="edit-locked" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Total</label>
+                                <input type="number" id="edit-total" step="0.01" placeholder="0.00">
+                            </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
             <div class="modal-footer">
-                <button onclick="saveBalanceChanges()" class="btn btn-primary">Save Changes</button>
-                <button onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+                <button class="btn btn-secondary" onclick="closeModal('balance-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveBalance()">Save Changes</button>
             </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="env.js"></script>
     <script src="api.js"></script>
+    <script src="balance-integration.js"></script>
+    <script src="navigation.js"></script>
+    <script src="modal.js"></script>
     <script>
-        let allBalances = [];
+        let currentBalances = [];
+        let currentFilter = '';
+        let currentSearch = '';
         let currentEditingBalance = null;
 
-        // Load balances on page load
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Navigation will handle authentication check
             loadBalances();
         });
 
+        // Make functions globally accessible
+        window.refreshBalances = refreshBalances;
+        window.logout = logout;
+
         async function loadBalances() {
             try {
-                document.getElementById('balanceTableBody').innerHTML = '<tr><td colspan="12" class="text-center">Loading balances...</td></tr>';
+                console.log('Loading balances...');
+                document.getElementById('balances-table-container').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading balances...</p>
+                    </div>
+                `;
                 
-                allBalances = await window.API.getAllUserBalances();
-                displayBalances(allBalances);
+                const balances = await window.AdminAPI.getAllUserBalances();
+                currentBalances = balances;
+                
+                console.log('Balances loaded:', balances.length);
+                renderBalancesTable(balances);
+                
             } catch (error) {
                 console.error('Failed to load balances:', error);
-                document.getElementById('balanceTableBody').innerHTML = '<tr><td colspan="12" class="text-center error">Failed to load balances: ' + error.message + '</td></tr>';
+                document.getElementById('balances-table-container').innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--danger-color);">
+                        <p>Failed to load balances. Please try again.</p>
+                        <p style="font-size: 12px; margin-top: 10px;">${error.message}</p>
+                    </div>
+                `;
             }
         }
 
-        function displayBalances(balances) {
-            const tbody = document.getElementById('balanceTableBody');
-            
-            if (!balances || balances.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="text-center">No balances found</td></tr>';
+        function renderBalancesTable(balances) {
+            const container = document.getElementById('balances-table-container');
+            document.getElementById('balances-count').textContent = balances.length;
+
+            if (balances.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        <p>No balances found</p>
+                    </div>
+                `;
                 return;
             }
 
-            tbody.innerHTML = balances.map(balance => `
-                <tr>
-                    <td>${balance.user_id}</td>
-                    <td>${balance.user_email}</td>
-                    <td>${balance.user_name}</td>
-                    <td>${balance.currency}</td>
-                    <td>${balance.amount !== null && balance.amount !== undefined ? parseFloat(balance.amount).toFixed(2) : '0.00'}</td>
-                    <td>${balance.usd_value !== null && balance.usd_value !== undefined ? parseFloat(balance.usd_value).toFixed(2) : '0.00'}</td>
-                    <td>${balance.available !== null && balance.available !== undefined ? parseFloat(balance.available).toFixed(2) : '0.00'}</td>
-                    <td>${balance.locked !== null && balance.locked !== undefined ? parseFloat(balance.locked).toFixed(2) : '0.00'}</td>
-                    <td>${balance.total !== null && balance.total !== undefined ? parseFloat(balance.total).toFixed(2) : '0.00'}</td>
-                    <td><span class="badge badge-${balance.type}">${balance.type}</span></td>
-                    <td>${new Date(balance.updated_at).toLocaleString()}</td>
-                    <td>
-                        <button onclick="editBalance('${balance.user_id}', '${balance.currency}')" class="btn btn-sm btn-primary">Edit</button>
-                    </td>
-                </tr>
-            `).join('');
+            const html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Currency</th>
+                            <th>Amount</th>
+                            <th>USD Value</th>
+                            <th>Available</th>
+                            <th>Locked</th>
+                            <th>Total</th>
+                            <th>Type</th>
+                            <th>Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${balances.map(balance => `
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>${balance.user_name || 'Unknown'}</strong><br>
+                                        <small style="color: var(--text-secondary);">${balance.user_email}</small><br>
+                                        <small style="color: var(--text-secondary); font-size: 11px;">${balance.user_id}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">${balance.currency}</span>
+                                </td>
+                                <td>$${balance.amount !== null && balance.amount !== undefined ? parseFloat(balance.amount).toFixed(2) : '0.00'}</td>
+                                <td>$${balance.usd_value !== null && balance.usd_value !== undefined ? parseFloat(balance.usd_value).toFixed(2) : '0.00'}</td>
+                                <td>$${balance.available !== null && balance.available !== undefined ? parseFloat(balance.available).toFixed(2) : '0.00'}</td>
+                                <td>$${balance.locked !== null && balance.locked !== undefined ? parseFloat(balance.locked).toFixed(2) : '0.00'}</td>
+                                <td>$${balance.total !== null && balance.total !== undefined ? parseFloat(balance.total).toFixed(2) : '0.00'}</td>
+                                <td>
+                                    <span class="badge badge-${balance.type}">${balance.type.replace('_', ' ')}</span>
+                                </td>
+                                <td>${formatDate(balance.updated_at)}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-sm btn-primary" onclick="editBalance('${balance.user_id}', '${balance.currency}')">Edit</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
         }
 
         function searchBalances() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const currencyFilter = document.getElementById('currencyFilter').value;
+            currentSearch = document.getElementById('search-input').value.toLowerCase();
+            filterBalances();
+        }
+
+        function filterBalances() {
+            const currencyFilter = document.getElementById('currency-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
             
-            let filtered = allBalances;
+            let filteredBalances = currentBalances;
             
-            if (searchTerm) {
-                filtered = filtered.filter(balance => 
-                    balance.user_email.toLowerCase().includes(searchTerm) ||
-                    balance.user_id.toLowerCase().includes(searchTerm) ||
-                    balance.user_name.toLowerCase().includes(searchTerm)
+            // Apply search filter
+            if (currentSearch) {
+                filteredBalances = filteredBalances.filter(balance => 
+                    balance.user_email.toLowerCase().includes(currentSearch) ||
+                    balance.user_id.toLowerCase().includes(currentSearch) ||
+                    balance.user_name.toLowerCase().includes(currentSearch)
                 );
             }
             
+            // Apply currency filter
             if (currencyFilter) {
-                filtered = filtered.filter(balance => balance.currency === currencyFilter);
+                filteredBalances = filteredBalances.filter(balance => balance.currency === currencyFilter);
             }
             
-            displayBalances(filtered);
+            // Apply type filter
+            if (typeFilter) {
+                filteredBalances = filteredBalances.filter(balance => balance.type === typeFilter);
+            }
+            
+            renderBalancesTable(filteredBalances);
+        }
+
+        function refreshBalances() {
+            loadBalances();
         }
 
         function editBalance(userId, currency) {
-            const balance = allBalances.find(b => b.user_id === userId && b.currency === currency);
+            const balance = currentBalances.find(b => b.user_id === userId && b.currency === currency);
             if (!balance) return;
 
             currentEditingBalance = balance;
             
-            document.getElementById('editUserId').value = balance.user_id;
-            document.getElementById('editEmail').value = balance.user_email;
-            document.getElementById('editCurrency').value = balance.currency;
+            // Populate form
+            document.getElementById('edit-user-id').value = balance.user_id;
+            document.getElementById('edit-email').value = balance.user_email;
+            document.getElementById('edit-currency').value = balance.currency;
             
-            document.getElementById('editAmount').value = balance.amount !== null ? balance.amount : '';
-            document.getElementById('editUsdValue').value = balance.usd_value !== null ? balance.usd_value : '';
-            document.getElementById('editAvailable').value = balance.available !== null ? balance.available : '';
-            document.getElementById('editLocked').value = balance.locked !== null ? balance.locked : '';
-            document.getElementById('editTotal').value = balance.total !== null ? balance.total : '';
-            
-            document.getElementById('editBalanceModal').style.display = 'block';
+            document.getElementById('edit-amount').value = balance.amount !== null && balance.amount !== undefined ? balance.amount : '';
+            document.getElementById('edit-usd-value').value = balance.usd_value !== null && balance.usd_value !== undefined ? balance.usd_value : '';
+            document.getElementById('edit-available').value = balance.available !== null && balance.available !== undefined ? balance.available : '';
+            document.getElementById('edit-locked').value = balance.locked !== null && balance.locked !== undefined ? balance.locked : '';
+            document.getElementById('edit-total').value = balance.total !== null && balance.total !== undefined ? balance.total : '';
+
+            // Show modal
+            document.getElementById('balance-modal').classList.add('active');
         }
 
-        function closeEditModal() {
-            document.getElementById('editBalanceModal').style.display = 'none';
-            currentEditingBalance = null;
-        }
-
-        async function saveBalanceChanges() {
+        async function saveBalance() {
             if (!currentEditingBalance) return;
 
             const updates = {};
             
             // Only include fields that have values
-            const amount = document.getElementById('editAmount').value;
-            const usdValue = document.getElementById('editUsdValue').value;
-            const available = document.getElementById('editAvailable').value;
-            const locked = document.getElementById('editLocked').value;
-            const total = document.getElementById('editTotal').value;
+            const amount = document.getElementById('edit-amount').value;
+            const usdValue = document.getElementById('edit-usd-value').value;
+            const available = document.getElementById('edit-available').value;
+            const locked = document.getElementById('edit-locked').value;
+            const total = document.getElementById('edit-total').value;
             
             if (amount !== '') updates.amount = parseFloat(amount);
             if (usdValue !== '') updates.usd_value = parseFloat(usdValue);
@@ -238,31 +833,25 @@
             if (total !== '') updates.total = parseFloat(total);
 
             try {
-                await window.API.updateUserBalance(currentEditingBalance.user_id, currentEditingBalance.currency, updates);
-                alert('Balance updated successfully!');
-                closeEditModal();
-                loadBalances(); // Refresh the table
+                await window.AdminAPI.updateUserBalance(currentEditingBalance.user_id, currentEditingBalance.currency, updates);
+                
+                window.modal.success('Balance updated successfully!');
+                closeModal('balance-modal');
+                refreshBalances();
+                
             } catch (error) {
-                console.error('Failed to update balance:', error);
-                alert('Failed to update balance: ' + error.message);
+                window.modal.error('Failed to update balance: ' + error.message);
             }
         }
 
-        function refreshBalances() {
-            loadBalances();
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            currentEditingBalance = null;
         }
 
         function logout() {
             window.API.signOut();
             window.location.href = 'login.html';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('editBalanceModal');
-            if (event.target === modal) {
-                closeEditModal();
-            }
         }
     </script>
 </body>
