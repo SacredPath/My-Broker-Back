@@ -165,6 +165,58 @@ class AdminAPI {
                 }
             }
             
+            // Use admin bypass table for deposit methods operations
+            if (endpoint === 'deposit_methods' && (options.method === 'POST' || options.method === 'PATCH')) {
+                
+                const body = JSON.parse(options.body);
+                
+                try {
+                    console.log('Deposit method update:', { body, method: options.method });
+                    
+                    // Insert into bypass table
+                    const bypassResponse = await fetch(`${this.supabaseUrl}/rest/v1/admin_deposit_method_updates`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({
+                            method_id: body.id || null,
+                            name: body.method_name || body.name,
+                            description: body.description || body.instructions,
+                            is_active: body.is_active,
+                            min_amount: parseFloat(body.min_amount) || 0,
+                            max_amount: parseFloat(body.max_amount) || 999999,
+                            fee_percentage: parseFloat(body.fee_percentage) || 0,
+                            fee_fixed: parseFloat(body.fixed_fee || body.fee_fixed) || 0,
+                            processing_time_hours: parseInt(body.processing_time_hours) || 0
+                        })
+                    });
+                    
+                    if (!bypassResponse.ok) {
+                        const errorData = await bypassResponse.json().catch(() => ({}));
+                        console.error('Deposit bypass table error:', errorData);
+                        throw new Error(errorData.message || 'Failed to insert into deposit bypass table');
+                    }
+                    
+                    // Process the updates
+                    const processResponse = await fetch(`${this.supabaseUrl}/rest/v1/rpc/process_admin_deposit_method_updates`, {
+                        method: 'POST',
+                        headers
+                    });
+                    
+                    if (!processResponse.ok) {
+                        const errorData = await processResponse.json().catch(() => ({}));
+                        console.error('Deposit process function error:', errorData);
+                        throw new Error(errorData.message || 'Failed to process deposit method updates');
+                    }
+                    
+                    console.log(`Deposit Service API Response Status: 200`);
+                    return { success: true };
+                    
+                } catch (error) {
+                    console.error('Deposit bypass operation failed:', error);
+                    throw error;
+                }
+            }
+            
             // Fallback to regular fetch for other operations
             const response = await fetch(`${this.supabaseUrl}/rest/v1/${endpoint}`, {
                 ...options,
