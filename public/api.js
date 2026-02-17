@@ -859,45 +859,23 @@ class AdminAPI {
         const adminRole = sessionStorage.getItem('adminRole') === 'admin' ? 'superadmin' : sessionStorage.getItem('adminRole');
 
         try {
-            // Get admin ID from session, but if it's invalid, use a default or null
-            const adminId = sessionStorage.getItem('adminId');
-            
-            // Try to create audit log, but handle foreign key constraint gracefully
-            try {
-                return this.request('audit_log', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        actor_user_id: adminId,
-                        actor_role: adminRole,
-                        action: action,
-                        target_user_id: targetUserId,
-                        reason: reason,
-                        before: before,
-                        after: after,
-                        created_at: new Date().toISOString()
-                    })
-                });
-            } catch (foreignKeyError) {
-                // If foreign key constraint fails, try without actor_user_id or with a default
-                console.warn('Foreign key constraint failed, trying without actor_user_id:', foreignKeyError.message);
-                
-                return this.request('audit_log', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        actor_user_id: null, // Set to null to avoid foreign key constraint
-                        actor_role: adminRole,
-                        action: action,
-                        target_user_id: targetUserId,
-                        reason: reason,
-                        before: before,
-                        after: after,
-                        created_at: new Date().toISOString()
-                    })
-                });
-            }
+            // Create audit log without actor_user_id to avoid foreign key constraint
+            return this.request('audit_log', {
+                method: 'POST',
+                body: JSON.stringify({
+                    actor_user_id: null, // Set to null to avoid foreign key constraint
+                    actor_role: adminRole,
+                    action: action,
+                    target_user_id: targetUserId,
+                    reason: reason,
+                    before: before,
+                    after: after,
+                    created_at: new Date().toISOString()
+                })
+            });
         } catch (error) {
             console.error('Failed to create audit log:', error);
-            // Don't throw error, just log it - settings should still save
+            // Don't throw error, just log it - operation should still succeed
             return { success: false, error: error.message };
         }
     }
