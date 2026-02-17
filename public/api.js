@@ -479,7 +479,116 @@ class AdminAPI {
         });
     }
 
-    // Financial Operations
+    // Notification Management
+    async sendNotification(userId, type, title, message) {
+        try {
+            const response = await this.request('rpc/send_notification', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_user_id: userId,
+                    p_type: type,
+                    p_title: title,
+                    p_message: message
+                })
+            });
+            return response;
+        } catch (error) {
+            console.error('Failed to send notification:', error);
+            throw error;
+        }
+    }
+
+    async getUserNotifications(userId, limit = 50, offset = 0) {
+        try {
+            const response = await this.request('rpc/get_user_notifications', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_user_id: userId,
+                    p_limit: limit,
+                    p_offset: offset
+                })
+            });
+            return response;
+        } catch (error) {
+            console.error('Failed to get user notifications:', error);
+            throw error;
+        }
+    }
+
+    async markNotificationAsRead(notificationId, userId) {
+        try {
+            const response = await this.request('rpc/mark_notification_read', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_notification_id: notificationId,
+                    p_user_id: userId
+                })
+            });
+            return response;
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+            throw error;
+        }
+    }
+
+    async markAllNotificationsAsRead(userId) {
+        try {
+            const response = await this.request('rpc/mark_all_notifications_read', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_user_id: userId
+                })
+            });
+            return response;
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+            throw error;
+        }
+    }
+
+    async getUnreadNotificationCount(userId) {
+        try {
+            const response = await this.request(`notifications?user_id=eq.${userId}&is_read=eq.false&select=count`, {
+                headers: {
+                    'Prefer': 'count=exact'
+                }
+            });
+            const count = parseInt(response.headers?.get('content-range')?.split('/')[1] || '0');
+            return count;
+        } catch (error) {
+            console.error('Failed to get unread notification count:', error);
+            return 0;
+        }
+    }
+
+    // Convenience methods for specific notification types
+    async sendDepositNotification(userId, amount, currency, status) {
+        const title = `Deposit ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+        const message = `Your ${currency} deposit of ${amount} has been ${status}.`;
+        return this.sendNotification(userId, 'deposit', title, message);
+    }
+
+    async sendWithdrawalNotification(userId, amount, currency, status) {
+        const title = `Withdrawal ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+        const message = `Your ${currency} withdrawal of ${amount} has been ${status}.`;
+        return this.sendNotification(userId, 'withdrawal', title, message);
+    }
+
+    async sendTradeNotification(userId, pair, action, amount, price) {
+        const title = `Trade ${action.charAt(0).toUpperCase() + action.slice(1)}`;
+        const message = `Your ${action} order for ${amount} ${pair} at ${price} has been executed.`;
+        return this.sendNotification(userId, 'trade', title, message);
+    }
+
+    async sendKycNotification(userId, status) {
+        const title = `KYC Status Update`;
+        const message = `Your KYC verification has been ${status}.`;
+        return this.sendNotification(userId, 'kyc', title, message);
+    }
+
+    async sendSystemNotification(userId, title, message) {
+        return this.sendNotification(userId, 'system', title, message);
+    }
     async getDeposits(status = 'all') {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
@@ -508,58 +617,134 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        return this.request(`deposit_requests?id=eq.${depositId}`, {
+        const response = await this.request(`deposit_requests?id=eq.${depositId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'approved',
-                processed_by: sessionStorage.getItem('adminId'),
-                processed_at: new Date().toISOString()
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: sessionStorage.getItem('adminId')
             })
         });
+
+        // Send notification to user
+        try {
+            // Get deposit details to send notification
+            const depositDetails = await this.request(`deposit_requests?id=eq.${depositId}&select=user_id,amount,currency`);
+            if (depositDetails && depositDetails.length > 0) {
+                const deposit = depositDetails[0];
+                await this.sendDepositNotification(
+                    deposit.user_id,
+                    deposit.amount,
+                    deposit.currency,
+                    'approved'
+                );
+            }
+        } catch (notificationError) {
+            console.warn('Failed to send deposit approval notification:', notificationError);
+        }
+
+        return response;
     }
 
     async rejectDeposit(depositId, reason) {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        return this.request(`deposit_requests?id=eq.${depositId}`, {
+        const response = await this.request(`deposit_requests?id=eq.${depositId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'rejected',
                 rejection_reason: reason,
-                processed_by: sessionStorage.getItem('adminId'),
-                processed_at: new Date().toISOString()
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: sessionStorage.getItem('adminId')
             })
         });
+
+        // Send notification to user
+        try {
+            // Get deposit details to send notification
+            const depositDetails = await this.request(`deposit_requests?id=eq.${depositId}&select=user_id,amount,currency`);
+            if (depositDetails && depositDetails.length > 0) {
+                const deposit = depositDetails[0];
+                await this.sendDepositNotification(
+                    deposit.user_id,
+                    deposit.amount,
+                    deposit.currency,
+                    'rejected'
+                );
+            }
+        } catch (notificationError) {
+            console.warn('Failed to send deposit rejection notification:', notificationError);
+        }
+
+        return response;
     }
 
     async approveWithdrawal(withdrawalId) {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        return this.request(`withdrawal_requests?id=eq.${withdrawalId}`, {
+        const response = await this.request(`withdrawal_requests?id=eq.${withdrawalId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'approved',
-                processed_by: sessionStorage.getItem('adminId'),
-                processed_at: new Date().toISOString()
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: sessionStorage.getItem('adminId')
             })
         });
+
+        // Send notification to user
+        try {
+            // Get withdrawal details to send notification
+            const withdrawalDetails = await this.request(`withdrawal_requests?id=eq.${withdrawalId}&select=user_id,amount,currency`);
+            if (withdrawalDetails && withdrawalDetails.length > 0) {
+                const withdrawal = withdrawalDetails[0];
+                await this.sendWithdrawalNotification(
+                    withdrawal.user_id,
+                    withdrawal.amount,
+                    withdrawal.currency,
+                    'approved'
+                );
+            }
+        } catch (notificationError) {
+            console.warn('Failed to send withdrawal approval notification:', notificationError);
+        }
+
+        return response;
     }
 
     async rejectWithdrawal(withdrawalId, reason) {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        return this.request(`withdrawal_requests?id=eq.${withdrawalId}`, {
+        const response = await this.request(`withdrawal_requests?id=eq.${withdrawalId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'rejected',
-                admin_notes: reason,
-                processed_by: sessionStorage.getItem('adminId'),
-                processed_at: new Date().toISOString()
+                rejection_reason: reason,
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: sessionStorage.getItem('adminId')
             })
         });
+
+        // Send notification to user
+        try {
+            // Get withdrawal details to send notification
+            const withdrawalDetails = await this.request(`withdrawal_requests?id=eq.${withdrawalId}&select=user_id,amount,currency`);
+            if (withdrawalDetails && withdrawalDetails.length > 0) {
+                const withdrawal = withdrawalDetails[0];
+                await this.sendWithdrawalNotification(
+                    withdrawal.user_id,
+                    withdrawal.amount,
+                    withdrawal.currency,
+                    'rejected'
+                );
+            }
+        } catch (notificationError) {
+            console.warn('Failed to send withdrawal rejection notification:', notificationError);
+        }
+
+        return response;
     }
 
     // Trading Operations
