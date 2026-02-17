@@ -147,7 +147,12 @@ class AdminAPI {
                     // Process the updates
                     const processResponse = await fetch(`${this.supabaseUrl}/rest/v1/rpc/process_admin_balance_updates`, {
                         method: 'POST',
-                        headers
+                        headers: {
+                            'apikey': this.supabaseKey,
+                            'Authorization': `Bearer ${this.supabaseKey}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        }
                     });
                     
                     if (!processResponse.ok) {
