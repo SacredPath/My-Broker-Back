@@ -944,6 +944,7 @@ class AdminAPI {
                     user_email: user.email || 'Unknown',
                     user_name: user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown',
                     currency: 'USD',
+                    balance: 0,  // Add balance field for consistency with BalanceManager
                     amount: 0,
                     usd_value: 0,
                     type: 'user_balance',
@@ -962,6 +963,7 @@ class AdminAPI {
                 if (combinedBalances[key]) {
                     // Update existing entry
                     combinedBalances[key].amount = balance.amount;
+                    combinedBalances[key].balance = balance.amount;  // Add balance field
                     combinedBalances[key].usd_value = balance.usd_value;
                     combinedBalances[key].updated_at = balance.updated_at;
                 } else {
@@ -971,6 +973,7 @@ class AdminAPI {
                         user_email: user?.email || 'Unknown',
                         user_name: user?.display_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Unknown',
                         currency: balance.currency,
+                        balance: balance.amount,  // Add balance field
                         amount: balance.amount,
                         usd_value: balance.usd_value,
                         type: 'user_balance',
@@ -982,16 +985,19 @@ class AdminAPI {
                 }
             });
 
-            // Process wallet_balances and merge
+            // Process wallet_balances
             walletBalances.forEach(wallet => {
                 const key = `${wallet.user_id}_${wallet.currency}`;
+                const user = users.find(u => u.user_id === wallet.user_id);
                 
                 if (combinedBalances[key]) {
-                    // Merge with existing entry
-                    combinedBalances[key].available = wallet.available;
-                    combinedBalances[key].locked = wallet.locked;
-                    combinedBalances[key].total = wallet.total;
+                    // Update existing entry with wallet data
+                    combinedBalances[key].available = wallet.available || 0;
+                    combinedBalances[key].locked = wallet.locked || 0;
+                    combinedBalances[key].total = wallet.total || 0;
+                    combinedBalances[key].balance = wallet.total || wallet.available || combinedBalances[key].balance;  // Update balance field
                     combinedBalances[key].type = 'combined';
+                    // Update timestamp if wallet is more recent
                     if (new Date(wallet.updated_at) > new Date(combinedBalances[key].updated_at)) {
                         combinedBalances[key].updated_at = wallet.updated_at;
                     }
@@ -1003,6 +1009,7 @@ class AdminAPI {
                         user_email: user?.email || 'Unknown',
                         user_name: user?.display_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Unknown',
                         currency: wallet.currency,
+                        balance: wallet.total || wallet.available || 0,  // Add balance field
                         amount: wallet.total || wallet.available,
                         usd_value: null,
                         type: 'wallet_balance',
