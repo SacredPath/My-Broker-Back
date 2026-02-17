@@ -742,7 +742,7 @@
                         <tr>
                             <th>User</th>
                             <th>Currency</th>
-                            <th>Amount</th>
+                            <th>Balance</th>
                             <th>USD Value</th>
                             <th>Available</th>
                             <th>Locked</th>
@@ -756,47 +756,50 @@
                         ${balances.map(balance => `
                             <tr>
                                 <td>
-                                    <div>
-                                        <strong>${balance.user_name || 'Unknown'}</strong><br>
-                                        <small style="color: var(--text-secondary);">${balance.user_email}</small><br>
-                                        <small style="color: var(--text-secondary); font-size: 11px;">${balance.user_id}</small>
+                                    <div style="font-weight: 500;">${balance.user_name}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">${balance.user_email}</div>
+                                    <div style="font-size: 10px; color: var(--text-secondary);">${balance.user_id}</div>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 500; color: var(--primary-color);">${balance.currency}</span>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 500;">${balance.balance !== undefined ? balance.balance.toLocaleString() : (balance.amount || 0).toLocaleString()}</span>
+                                </td>
+                                <td>
+                                    $${(balance.usd_value || 0).toLocaleString()}
+                                </td>
+                                <td>
+                                    <span style="color: var(--success-color);">${(balance.available || 0).toLocaleString()}</span>
+                                </td>
+                                <td>
+                                    <span style="color: var(--warning-color);">${(balance.locked || 0).toLocaleString()}</span>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 500; color: var(--primary-color);">${(balance.total || (balance.available || 0) + (balance.locked || 0)).toLocaleString()}</span>
+                                </td>
+                                <td>
+                                    <span class="badge ${balance.type === 'combined' ? 'badge-primary' : balance.type === 'wallet_balance' ? 'badge-success' : 'badge-secondary'}">
+                                        ${balance.type === 'combined' ? 'Combined' : balance.type === 'wallet_balance' ? 'Wallet' : 'User'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">
+                                        ${new Date(balance.updated_at).toLocaleDateString()}
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge badge-info">${balance.currency}</span>
-                                </td>
-                                <td>$${balance.amount !== null && balance.amount !== undefined ? parseFloat(balance.amount).toFixed(2) : '0.00'}</td>
-                                <td>$${balance.usd_value !== null && balance.usd_value !== undefined ? parseFloat(balance.usd_value).toFixed(2) : '0.00'}</td>
-                                <td>$${balance.available !== null && balance.available !== undefined ? parseFloat(balance.available).toFixed(2) : '0.00'}</td>
-                                <td>$${balance.locked !== null && balance.locked !== undefined ? parseFloat(balance.locked).toFixed(2) : '0.00'}</td>
-                                <td>$${balance.total !== null && balance.total !== undefined ? parseFloat(balance.total).toFixed(2) : '0.00'}</td>
-                                <td>
-                                    <span class="badge badge-${balance.type}">${balance.type.replace('_', ' ')}</span>
-                                </td>
-                                <td>${formatDate(balance.updated_at)}</td>
-                                <td>
-                                    <div class="actions">
-                                        <button class="btn btn-sm btn-primary" onclick="editBalance('${balance.user_id}', '${balance.currency}')">Edit</button>
-                                    </div>
+                                    <button class="btn btn-sm btn-primary" onclick="editBalance('${balance.user_id}', '${balance.currency}')">
+                                        Edit
+                                    </button>
                                 </td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
             `;
-
+            
             container.innerHTML = html;
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        }
-
-        function searchBalances() {
-            currentSearch = document.getElementById('search-input').value.toLowerCase();
-            filterBalances();
         }
 
         function filterBalances() {
@@ -831,22 +834,29 @@
             loadBalances();
         }
 
+        function searchBalances() {
+            currentSearch = document.getElementById('search-input').value.toLowerCase();
+            filterBalances();
+        }
+
         function editBalance(userId, currency) {
             const balance = currentBalances.find(b => b.user_id === userId && b.currency === currency);
             if (!balance) return;
 
             currentEditingBalance = balance;
             
-            // Populate form
+            // Populate form with unified balance field
             document.getElementById('edit-user-id').value = balance.user_id;
             document.getElementById('edit-email').value = balance.user_email;
             document.getElementById('edit-currency').value = balance.currency;
             
-            document.getElementById('edit-amount').value = balance.amount !== null && balance.amount !== undefined ? balance.amount : '';
+            // Use the unified balance field (like BalanceManager)
+            const mainBalance = balance.balance !== undefined ? balance.balance : (balance.amount || 0);
+            document.getElementById('edit-amount').value = mainBalance !== null && mainBalance !== undefined ? mainBalance : '';
             document.getElementById('edit-usd-value').value = balance.usd_value !== null && balance.usd_value !== undefined ? balance.usd_value : '';
             document.getElementById('edit-available').value = balance.available !== null && balance.available !== undefined ? balance.available : '';
             document.getElementById('edit-locked').value = balance.locked !== null && balance.locked !== undefined ? balance.locked : '';
-            document.getElementById('edit-total').value = balance.total !== null && balance.total !== undefined ? balance.total : '';
+            document.getElementById('edit-total').value = balance.total !== null && balance.total !== undefined ? balance.total : (balance.available || 0) + (balance.locked || 0);
 
             // Show modal
             document.getElementById('balance-modal').classList.add('active');
@@ -857,19 +867,19 @@
 
             const updates = {};
             
-            // Only include fields that have values
+            // Only include fields that have values - same logic as BalanceManager
             const amount = document.getElementById('edit-amount').value;
             const usdValue = document.getElementById('edit-usd-value').value;
             const available = document.getElementById('edit-available').value;
             const locked = document.getElementById('edit-locked').value;
-            const total = document.getElementById('edit-total').value;
             
             if (amount !== '') updates.amount = parseFloat(amount);
             if (usdValue !== '') updates.usd_value = parseFloat(usdValue);
             if (available !== '') updates.available = parseFloat(available);
             if (locked !== '') updates.locked = parseFloat(locked);
-            // Note: Don't send 'total' as it's a generated column in wallet_balances
-            // The database will calculate total = available + locked automatically
+            
+            // Note: Don't send 'total' as it's calculated by database (available + locked)
+            // This matches the BalanceManager approach
 
             try {
                 await window.AdminAPI.updateUserBalance(currentEditingBalance.user_id, currentEditingBalance.currency, updates);
