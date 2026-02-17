@@ -804,8 +804,14 @@ class AdminAPI {
         // Map category to type for database compatibility
         const notificationType = category === 'general' ? 'system' : category;
 
-        return this.request('notifications', {
+        const response = await fetch(`${this.supabaseUrl}/rest/v1/notifications`, {
             method: 'POST',
+            headers: {
+                'apikey': this.supabaseKey,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
             body: JSON.stringify({
                 user_id: userId,
                 type: notificationType,
@@ -815,6 +821,34 @@ class AdminAPI {
                 created_at: new Date().toISOString()
             })
         });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        return await response.json();
+    }
+
+    async getAllNotifications(limit = 100, offset = 0) {
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) throw new Error('Not authenticated');
+
+        const response = await fetch(`${this.supabaseUrl}/rest/v1/notifications?select=*&order=created_at.desc&limit=${limit}&offset=${offset}`, {
+            method: 'GET',
+            headers: {
+                'apikey': this.supabaseKey,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        return await response.json();
     }
 
     async createAuditLog(action, targetUserId = null, reason = null, before = null, after = null) {
