@@ -485,23 +485,6 @@ class AdminAPI {
     }
 
     // Notification Management
-    async sendNotification(userId, type, title, message) {
-        try {
-            const response = await this.request('rpc/send_notification', {
-                method: 'POST',
-                body: JSON.stringify({
-                    p_user_id: userId,
-                    p_type: type,
-                    p_title: title,
-                    p_message: message
-                })
-            });
-            return response;
-        } catch (error) {
-            console.error('Failed to send notification:', error);
-            throw error;
-        }
-    }
 
     async getUserNotifications(userId, limit = 50, offset = 0) {
         try {
@@ -814,19 +797,21 @@ class AdminAPI {
         });
     }
 
-    async sendNotification(userId, title, message, category = 'general') {
+    async sendNotification(userId, title, message, category = 'general', type = 'info') {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
+
+        // Map category to type for database compatibility
+        const notificationType = category === 'general' ? 'system' : category;
 
         return this.request('notifications', {
             method: 'POST',
             body: JSON.stringify({
                 user_id: userId,
+                type: notificationType,
                 title: title,
                 message: message,
-                category: category,
-                type: 'info',
-                unread: true,
+                is_read: false,
                 created_at: new Date().toISOString()
             })
         });
