@@ -5,7 +5,7 @@
 class AdminAPI {
     constructor() {
         this.supabaseUrl = window.__ENV?.SUPABASE_URL;
-        this.supabaseKey = window.__ENV?.SUPABASE_ANON_KEY;
+        this.supabaseKey = window.__ENV?.SUPABASE_SERVICE_ROLE_KEY || window.__ENV?.SUPABASE_ANON_KEY;
         
         if (!this.supabaseUrl || !this.supabaseKey) {
             throw new Error('Missing Supabase configuration');

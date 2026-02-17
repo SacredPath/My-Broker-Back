@@ -22,6 +22,10 @@ if (!window.__ENV.SUPABASE_ANON_KEY) {
   window.__ENV.SUPABASE_ANON_KEY = DEFAULT_SUPABASE_ANON_KEY;
 }
 
+if (!window.__ENV.SUPABASE_SERVICE_ROLE_KEY) {
+  window.__ENV.SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVieWNvZXl1dGF1empneGJvemNtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTQwNjI5MiwiZXhwIjoyMDg0OTgyMjkyfQ.16X2ssw9RgDw4QhF4x1KvilcbMUpqn00gBP0Ed7MCHc';
+}
+
 if (!window.__ENV.NODE_ENV) {
   window.__ENV.NODE_ENV = 'development';
 }
