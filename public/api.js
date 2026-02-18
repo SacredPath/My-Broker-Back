@@ -1252,8 +1252,12 @@ class AdminAPI {
     }
 }
 
-// Initialize global API instance
-window.AdminAPI = new AdminAPI();
+// Initialize global API instance only if not already exists
+if (!window.AdminAPI) {
+    window.AdminAPI = new AdminAPI();
+}
 
-// Create window.API for backward compatibility
-window.API = window.AdminAPI;
+// Create window.API for backward compatibility only if not already exists
+if (!window.API) {
+    window.API = window.AdminAPI;
+}

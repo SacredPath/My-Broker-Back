@@ -325,10 +325,25 @@ class Modal {
     }
 }
 
-// Initialize global modal instance
-window.modal = new Modal();
+// Initialize global modal instance when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.modal) {
+            window.modal = new Modal();
+        }
+    });
+} else {
+    if (!window.modal) {
+        window.modal = new Modal();
+    }
+}
 
 // Replace global alert function
 window.alert = (message, title = 'Alert') => {
-    window.modal.alert(message, title);
+    if (window.modal) {
+        window.modal.alert(message, title);
+    } else {
+        // Fallback to native alert if modal not ready
+        nativeAlert(`${title}: ${message}`);
+    }
 };
