@@ -755,12 +755,11 @@
         async function loadNotifications() {
             try {
                 console.log('Loading notifications...');
-                // Since we don't have a direct method to get all notifications, 
-                // we'll use a workaround or show a message
-                const notifications = await getRecentNotifications();
+                const notifications = await window.AdminAPI.getAllNotifications(50);
                 currentNotifications = notifications;
                 
                 renderNotificationsTable(notifications);
+                renderAllNotificationsTable(notifications);
                 updateStats(notifications);
                 
             } catch (error) {
@@ -780,9 +779,13 @@
         }
 
         async function getRecentNotifications() {
-            // This is a placeholder - in a real implementation, you'd have an API method
-            // to fetch notifications. For now, return empty array.
-            return [];
+            try {
+                const notifications = await window.AdminAPI.getAllNotifications(10);
+                return notifications;
+            } catch (error) {
+                console.error('Failed to get recent notifications:', error);
+                return [];
+            }
         }
 
         function renderNotificationsTable(notifications) {

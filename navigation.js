@@ -282,6 +282,7 @@ class AdminNavigation {
                             <a href="deposits.html" data-page="deposits">Deposits</a>
                             <a href="withdrawals.html" data-page="withdrawals">Withdrawals</a>
                             <a href="kyc.html" data-page="kyc">KYC</a>
+                            <a href="notifications.html" data-page="notifications">Notifications</a>
                             <a href="support.html" data-page="support">Support</a>
                             <a href="settings.html" data-page="settings">Settings</a>
                         </div>

@@ -10,30 +10,16 @@ async function loadACHSettingsFromDB() {
         console.log('Loading ACH settings from database...');
         
         // Query the deposit_methods table for ACH method
-        const response = await fetch('/api/deposit-methods', {
-            method: 'POST',
+        const supabaseUrl = window.AdminAPI.supabaseUrl;
+        const supabaseKey = window.AdminAPI.supabaseKey;
+        const authToken = sessionStorage.getItem('adminToken');
+        
+        const response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?method_type=eq.ach&currency=eq.USD&select=*`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: `
-                    SELECT 
-                        bank_name,
-                        account_number,
-                        routing_number,
-                        instructions,
-                        min_amount,
-                        max_amount,
-                        fee_percentage,
-                        fixed_fee,
-                        processing_time_hours,
-                        is_active
-                    FROM deposit_methods 
-                    WHERE method_type = 'ach' 
-                    AND currency = 'USD'
-                    LIMIT 1
-                `
-            })
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (!response.ok) {
@@ -42,8 +28,8 @@ async function loadACHSettingsFromDB() {
 
         const result = await response.json();
         
-        if (result.data && result.data.length > 0) {
-            const achSettings = result.data[0];
+        if (result && result.length > 0) {
+            const achSettings = result[0];
             
             // Update the form fields
             document.getElementById('ach-bank-name').value = achSettings.bank_name || '';
@@ -88,29 +74,16 @@ async function loadPayPalSettingsFromDB() {
     try {
         console.log('Loading PayPal settings from database...');
         
-        const response = await fetch('/api/deposit-methods', {
-            method: 'POST',
+        const supabaseUrl = window.AdminAPI.supabaseUrl;
+        const supabaseKey = window.AdminAPI.supabaseKey;
+        const authToken = sessionStorage.getItem('adminToken');
+        
+        const response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?method_type=eq.paypal&select=*`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: `
-                    SELECT 
-                        paypal_email,
-                        paypal_business_name,
-                        instructions,
-                        min_amount,
-                        max_amount,
-                        fee_percentage,
-                        fixed_fee,
-                        processing_time_hours,
-                        is_active
-                    FROM deposit_methods 
-                    WHERE method_type = 'paypal' 
-                    AND currency = 'USD'
-                    LIMIT 1
-                `
-            })
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (!response.ok) {
@@ -119,8 +92,8 @@ async function loadPayPalSettingsFromDB() {
 
         const result = await response.json();
         
-        if (result.data && result.data.length > 0) {
-            const paypalSettings = result.data[0];
+        if (result && result.length > 0) {
+            const paypalSettings = result[0];
             
             // Update the form fields
             document.getElementById('paypal-email').value = paypalSettings.paypal_email || '';
@@ -161,28 +134,16 @@ async function loadBitcoinSettingsFromDB() {
     try {
         console.log('Loading Bitcoin settings from database...');
         
-        const response = await fetch('/api/deposit-methods', {
-            method: 'POST',
+        const supabaseUrl = window.AdminAPI.supabaseUrl;
+        const supabaseKey = window.AdminAPI.supabaseKey;
+        const authToken = sessionStorage.getItem('adminToken');
+        
+        const response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?method_type=eq.crypto&currency=eq.BTC&select=*`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: `
-                    SELECT 
-                        address,
-                        instructions,
-                        min_amount,
-                        max_amount,
-                        fee_percentage,
-                        fixed_fee,
-                        processing_time_hours,
-                        is_active
-                    FROM deposit_methods 
-                    WHERE method_type = 'crypto' 
-                    AND currency = 'BTC'
-                    LIMIT 1
-                `
-            })
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (!response.ok) {
@@ -191,8 +152,8 @@ async function loadBitcoinSettingsFromDB() {
 
         const result = await response.json();
         
-        if (result.data && result.data.length > 0) {
-            const btcSettings = result.data[0];
+        if (result && result.length > 0) {
+            const btcSettings = result[0];
             
             // Update the form fields
             document.getElementById('btc-address').value = btcSettings.address || '';
@@ -231,28 +192,16 @@ async function loadUSDTSettingsFromDB() {
     try {
         console.log('Loading USDT settings from database...');
         
-        const response = await fetch('/api/deposit-methods', {
-            method: 'POST',
+        const supabaseUrl = window.AdminAPI.supabaseUrl;
+        const supabaseKey = window.AdminAPI.supabaseKey;
+        const authToken = sessionStorage.getItem('adminToken');
+        
+        const response = await fetch(`${supabaseUrl}/rest/v1/deposit_methods?method_type=eq.crypto&currency=eq.USDT&select=*`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: `
-                    SELECT 
-                        address,
-                        instructions,
-                        min_amount,
-                        max_amount,
-                        fee_percentage,
-                        fixed_fee,
-                        processing_time_hours,
-                        is_active
-                    FROM deposit_methods 
-                    WHERE method_type = 'crypto' 
-                    AND currency = 'USDT'
-                    LIMIT 1
-                `
-            })
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${authToken}`
+            }
         });
 
         if (!response.ok) {
@@ -261,8 +210,8 @@ async function loadUSDTSettingsFromDB() {
 
         const result = await response.json();
         
-        if (result.data && result.data.length > 0) {
-            const usdtSettings = result.data[0];
+        if (result && result.length > 0) {
+            const usdtSettings = result[0];
             
             // Update the form fields
             document.getElementById('usdt-address').value = usdtSettings.address || '';

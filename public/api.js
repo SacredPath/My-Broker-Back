@@ -11,6 +11,9 @@ class AdminAPI {
             throw new Error('Missing Supabase configuration');
         }
         
+        // Initialize Supabase client
+        this.supabase = window.supabase.createClient(this.supabaseUrl, this.supabaseKey);
+        
         console.log('AdminAPI initialized with URL:', this.supabaseUrl);
         console.log('API Key length:', this.supabaseKey.length);
     }
@@ -98,7 +101,8 @@ class AdminAPI {
             
             // Use admin bypass table for balance operations
             if ((options.method === 'POST' && endpoint === 'wallet_balances') ||
-                (options.method === 'PATCH' && endpoint.includes('user_balances'))) {
+                (options.method === 'PATCH' && endpoint.includes('user_balances')) ||
+                (options.method === 'PATCH' && endpoint.includes('wallet_balances'))) {
                 
                 const body = JSON.parse(options.body);
                 
@@ -106,7 +110,7 @@ class AdminAPI {
                     // Extract user_id and currency from the request
                     let userId, currency;
                     
-                    if (options.method === 'PATCH' && endpoint.includes('user_balances')) {
+                    if (options.method === 'PATCH' && (endpoint.includes('user_balances') || endpoint.includes('wallet_balances'))) {
                         // Extract from URL parameters for PATCH
                         const urlParams = new URLSearchParams(endpoint.split('?')[1]);
                         userId = urlParams.get('user_id')?.replace('eq.', '');
@@ -880,6 +884,67 @@ class AdminAPI {
         }
     }
 
+    // Daily Autogrowth Management
+    async triggerDailyAutogrowth() {
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) throw new Error('Not authenticated');
+
+        try {
+            const response = await this.request('rpc/trigger_daily_autogrowth', {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Failed to trigger daily autogrowth:', error);
+            throw error;
+        }
+    }
+
+    async getAutogrowthHistory(limit = 100, offset = 0) {
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) throw new Error('Not authenticated');
+
+        return this.request(`daily_autogrowth_log?select=*&order=growth_date.desc&limit=${limit}&offset=${offset}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+
+    async getAutogrowthStats() {
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) throw new Error('Not authenticated');
+
+        try {
+            // Get today's autogrowth stats
+            const todayStats = await this.request(`daily_autogrowth_log?growth_date=eq.${new Date().toISOString().split('T')[0]}&select=users_processed,total_growth`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Get monthly stats
+            const monthlyStats = await this.request(`daily_autogrowth_log?growth_date=gte.${new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}&select=COUNT(*) as users_processed,SUM(growth_amount) as total_growth`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                today: todayStats[0] || { users_processed: 0, total_growth: 0 },
+                monthly: monthlyStats[0] || { users_processed: 0, total_growth: 0 }
+            };
+        } catch (error) {
+            console.error('Failed to get autogrowth stats:', error);
+            return {
+                today: { users_processed: 0, total_growth: 0 },
+                monthly: { users_processed: 0, total_growth: 0 }
+            };
+        }
+    }
+
     // Email verification
     async verifyUserEmail(userId) {
         const token = sessionStorage.getItem('adminToken');
@@ -1126,6 +1191,63 @@ class AdminAPI {
         } catch (error) {
             console.error('Failed to update user balance:', error);
             throw error;
+        }
+    }
+
+    // User Registration
+    async signUp(email, password, displayName, firstName, lastName) {
+        try {
+            const { data, error } = await this.supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        display_name: displayName,
+                        first_name: firstName,
+                        last_name: lastName
+                    }
+                }
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Registration failed');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Registration error:', error);
+            throw error;
+        }
+    }
+
+    // User Login
+    async signIn(email, password) {
+        try {
+            const { data, error } = await this.supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Login failed');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
+        }
+    }
+
+    // User Logout
+    async signOut() {
+        try {
+            const { error } = await this.supabase.auth.signOut();
+            if (error) {
+                console.error('Logout error:', error);
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
         }
     }
 }
