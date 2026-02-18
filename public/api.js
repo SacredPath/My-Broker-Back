@@ -915,23 +915,36 @@ class AdminAPI {
         if (!token) throw new Error('Not authenticated');
 
         try {
-            // Get today's autogrowth stats
-            const todayStats = await this.request(`daily_autogrowth_log?growth_date=eq.${new Date().toISOString().split('T')[0]}&select=users_processed,total_growth`, {
+            // Get today's autogrowth stats - calculate from individual records
+            const todayStats = await this.request(`daily_autogrowth_log?growth_date=eq.${new Date().toISOString().split('T')[0]}&select=*`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
-            // Get monthly stats
-            const monthlyStats = await this.request(`daily_autogrowth_log?growth_date=gte.${new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}&select=COUNT(*) as users_processed,SUM(growth_amount) as total_growth`, {
+            // Get monthly stats - calculate from individual records
+            const monthlyStats = await this.request(`daily_autogrowth_log?growth_date=gte.${new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}&select=*`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
+            // Calculate stats from records
+            const todayUsers = todayStats.length;
+            const todayGrowth = todayStats.reduce((sum, record) => sum + (parseFloat(record.growth_amount) || 0), 0);
+            
+            const monthlyUsers = monthlyStats.length;
+            const monthlyGrowth = monthlyStats.reduce((sum, record) => sum + (parseFloat(record.growth_amount) || 0), 0);
 
             return {
-                today: todayStats[0] || { users_processed: 0, total_growth: 0 },
-                monthly: monthlyStats[0] || { users_processed: 0, total_growth: 0 }
+                today: { 
+                    users_processed: todayUsers, 
+                    total_growth: todayGrowth 
+                },
+                monthly: { 
+                    users_processed: monthlyUsers, 
+                    total_growth: monthlyGrowth 
+                }
             };
         } catch (error) {
             console.error('Failed to get autogrowth stats:', error);
