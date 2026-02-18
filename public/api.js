@@ -11,9 +11,6 @@ class AdminAPI {
             throw new Error('Missing Supabase configuration');
         }
         
-        // Initialize Supabase client
-        this.supabase = window.supabase.createClient(this.supabaseUrl, this.supabaseKey);
-        
         console.log('AdminAPI initialized with URL:', this.supabaseUrl);
         console.log('API Key length:', this.supabaseKey.length);
     }
@@ -1193,71 +1190,10 @@ class AdminAPI {
             throw error;
         }
     }
-
-    // User Registration
-    async signUp(email, password, displayName, firstName, lastName) {
-        try {
-            const { data, error } = await this.supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        display_name: displayName,
-                        first_name: firstName,
-                        last_name: lastName
-                    }
-                }
-            });
-
-            if (error) {
-                throw new Error(error.message || 'Registration failed');
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Registration error:', error);
-            throw error;
-        }
-    }
-
-    // User Login
-    async signIn(email, password) {
-        try {
-            const { data, error } = await this.supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-
-            if (error) {
-                throw new Error(error.message || 'Login failed');
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
-    }
-
-    // User Logout
-    async signOut() {
-        try {
-            const { error } = await this.supabase.auth.signOut();
-            if (error) {
-                console.error('Logout error:', error);
-            }
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-    }
 }
 
-// Initialize global API instance only if not already exists
-if (!window.AdminAPI) {
-    window.AdminAPI = new AdminAPI();
-}
+// Initialize global API instance
+window.AdminAPI = new AdminAPI();
 
-// Create window.API for backward compatibility only if not already exists
-if (!window.API) {
-    window.API = window.AdminAPI;
-}
+// Create window.API for backward compatibility
+window.API = window.AdminAPI;
