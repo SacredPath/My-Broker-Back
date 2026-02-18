@@ -11,6 +11,12 @@ class AdminAPI {
             throw new Error('Missing Supabase configuration');
         }
         
+        // Check if Supabase is loaded
+        if (typeof window.supabase === 'undefined') {
+            console.error('Supabase library not loaded. Make sure the CDN script is included.');
+            throw new Error('Supabase library not loaded');
+        }
+        
         // Initialize Supabase client
         this.supabase = window.supabase.createClient(this.supabaseUrl, this.supabaseKey);
         
