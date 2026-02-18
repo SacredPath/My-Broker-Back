@@ -300,7 +300,7 @@
                     });
                     
                     if (authError) {
-                        throw new Error(authError.message || 'Registration failed');
+                        throw new Error(authError.message || authError.error_description || 'Registration failed');
                     }
                     
                     // Store auth token for profile creation

@@ -32,7 +32,9 @@ class SupabaseClient {
                         body: JSON.stringify({
                             email: email,
                             password: password,
-                            data: options?.data || {}
+                            options: {
+                                data: options?.data || {}
+                            }
                         })
                     });
 
