@@ -322,6 +322,24 @@
                         })
                     });
                     
+                    // Create admin_users record for admin access
+                    await adminAPI.serviceRequest('admin_users', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            user_id: authData.user.id,
+                            email: email,
+                            full_name: `${firstName} ${lastName}`,
+                            role: 'admin',
+                            permissions: JSON.stringify({
+                                dashboard: true,
+                                users: true,
+                                trading: true
+                            }),
+                            is_active: true,
+                            created_at: new Date().toISOString()
+                        })
+                    });
+                    
                     showAlert('Account created successfully! Please check your email to verify, then login.', 'success');
                     
                     // Clear auth token after profile creation
