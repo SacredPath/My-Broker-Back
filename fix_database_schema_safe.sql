@@ -117,39 +117,62 @@ CREATE INDEX IF NOT EXISTS idx_positions_user_id ON positions(user_id);
 CREATE INDEX IF NOT EXISTS idx_signals_user_id ON signals(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);
 
--- Create policies for service role access (with IF NOT EXISTS)
-CREATE POLICY IF NOT EXISTS "Service role can access all profiles" ON profiles
+-- Create policies for service role access
+DROP POLICY IF EXISTS "Service role can access all profiles" ON profiles;
+CREATE POLICY "Service role can access all profiles" ON profiles
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
-CREATE POLICY IF NOT EXISTS "Service role can access all deposits" ON deposits
+DROP POLICY IF EXISTS "Service role can access all deposits" ON deposits;
+CREATE POLICY "Service role can access all deposits" ON deposits
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
-CREATE POLICY IF NOT EXISTS "Service role can access all withdrawals" ON withdrawals
+DROP POLICY IF EXISTS "Service role can access all withdrawals" ON withdrawals;
+CREATE POLICY "Service role can access all withdrawals" ON withdrawals
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
-CREATE POLICY IF NOT EXISTS "Service role can access all deposit_requests" ON deposit_requests
+DROP POLICY IF EXISTS "Service role can access all deposit_requests" ON deposit_requests;
+CREATE POLICY "Service role can access all deposit_requests" ON deposit_requests
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
-CREATE POLICY IF NOT EXISTS "Service role can access all withdrawal_requests" ON withdrawal_requests
+DROP POLICY IF EXISTS "Service role can access all withdrawal_requests" ON withdrawal_requests;
+CREATE POLICY "Service role can access all withdrawal_requests" ON withdrawal_requests
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
-CREATE POLICY IF NOT EXISTS "Service role can access all positions" ON positions
+DROP POLICY IF EXISTS "Service role can access all positions" ON positions;
+CREATE POLICY "Service role can access all positions" ON positions
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
-CREATE POLICY IF NOT EXISTS "Service role can access all signals" ON signals
+DROP POLICY IF EXISTS "Service role can access all signals" ON signals;
+CREATE POLICY "Service role can access all signals" ON signals
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
-CREATE POLICY IF NOT EXISTS "Service role can access all audit_log" ON audit_log
+DROP POLICY IF EXISTS "Service role can access all audit_log" ON audit_log;
+CREATE POLICY "Service role can access all audit_log" ON audit_log
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
 -- Grant permissions (with IF NOT EXISTS)
+DROP GRANT IF EXISTS ON profiles TO service_role;
 GRANT ALL ON profiles TO service_role;
+
+DROP GRANT IF EXISTS ON deposits TO service_role;
 GRANT ALL ON deposits TO service_role;
+
+DROP GRANT IF EXISTS ON withdrawals TO service_role;
 GRANT ALL ON withdrawals TO service_role;
+
+DROP GRANT IF EXISTS ON deposit_requests TO service_role;
 GRANT ALL ON deposit_requests TO service_role;
+
+DROP GRANT IF EXISTS ON withdrawal_requests TO service_role;
 GRANT ALL ON withdrawal_requests TO service_role;
+
+DROP GRANT IF EXISTS ON positions TO service_role;
 GRANT ALL ON positions TO service_role;
+
+DROP GRANT IF EXISTS ON signals TO service_role;
 GRANT ALL ON signals TO service_role;
+
+DROP GRANT IF EXISTS ON audit_log TO service_role;
 GRANT ALL ON audit_log TO service_role;
 
 -- Output confirmation
