@@ -335,20 +335,17 @@ class AdminAPI {
                 depositsData,
                 pendingDeposits,
                 pendingWithdrawals,
-                positionsData,
                 signalsData,
-                auditData,
+                supportData,
                 notificationsData
             ] = await Promise.allSettled([
                 this.request('profiles?select=count'),
                 this.request('admin_users?select=count'),
                 this.request('profiles?select=kyc_status'),
-                this.request('deposits?select=count'),
-                this.request('deposit_requests?status=eq.pending&select=count'),
-                this.request('withdrawal_requests?status=eq.pending&select=count'),
-                this.request('positions?select=count'),
-                this.request('signals?is_active=eq.true&select=count'),
-                this.request('audit_log?select=count'),
+                this.request('withdrawals?select=count'),
+                this.request('withdrawals?status=eq.pending&select=count'),
+                this.request('trading_signals?select=count'),
+                this.request('support_tickets?select=count'),
                 this.request('notifications?select=count')
             ]).then(results => results.map(result => 
                 result.status === 'fulfilled' ? result.value : null
@@ -367,11 +364,11 @@ class AdminAPI {
                 totalDeposits: depositsData?.[0]?.count || 0,
                 pendingDeposits: pendingDeposits?.[0]?.count || 0,
                 pendingWithdrawals: pendingWithdrawals?.[0]?.count || 0,
-                totalPositions: positionsData?.[0]?.count || 0,
+                totalPositions: 0, // No positions table exists
                 activeSignals: signalsData?.[0]?.count || 0,
-                totalAuditLogs: auditData?.[0]?.count || 0,
+                totalAuditLogs: 0, // No support_tickets table exists
                 totalNotifications: notificationsData?.[0]?.count || 0,
-                openSupportTickets: 0
+                openSupportTickets: supportData?.[0]?.count || 0
             };
         } catch (error) {
             console.error('Failed to get dashboard stats:', error);
@@ -582,7 +579,7 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        let endpoint = 'deposit_requests?select=*&order=created_at.desc';
+        let endpoint = 'deposits?select=*&order=created_at.desc';
         if (status !== 'all') {
             endpoint += `&status=eq.${status}`;
         }
@@ -594,7 +591,7 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        let endpoint = 'withdrawal_requests?select=*&order=created_at.desc';
+        let endpoint = 'withdrawals?select=*&order=created_at.desc';
         if (status !== 'all') {
             endpoint += `&status=eq.${status}`;
         }
@@ -606,7 +603,7 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        const response = await this.request(`deposit_requests?id=eq.${depositId}`, {
+        const response = await this.request(`deposits?id=eq.${depositId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'approved',
@@ -618,7 +615,7 @@ class AdminAPI {
         // Send notification to user
         try {
             // Get deposit details to send notification
-            const depositDetails = await this.request(`deposit_requests?id=eq.${depositId}&select=user_id,amount,currency`);
+            const depositDetails = await this.request(`deposits?id=eq.${depositId}&select=user_id,amount,currency`);
             if (depositDetails && depositDetails.length > 0) {
                 const deposit = depositDetails[0];
                 await this.sendDepositNotification(
@@ -639,7 +636,7 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        const response = await this.request(`deposit_requests?id=eq.${depositId}`, {
+        const response = await this.request(`deposits?id=eq.${depositId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'rejected',
@@ -652,7 +649,7 @@ class AdminAPI {
         // Send notification to user
         try {
             // Get deposit details to send notification
-            const depositDetails = await this.request(`deposit_requests?id=eq.${depositId}&select=user_id,amount,currency`);
+            const depositDetails = await this.request(`deposits?id=eq.${depositId}&select=user_id,amount,currency`);
             if (depositDetails && depositDetails.length > 0) {
                 const deposit = depositDetails[0];
                 await this.sendDepositNotification(
@@ -673,7 +670,7 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        const response = await this.request(`withdrawal_requests?id=eq.${withdrawalId}`, {
+        const response = await this.request(`withdrawals?id=eq.${withdrawalId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'approved',
@@ -685,7 +682,7 @@ class AdminAPI {
         // Send notification to user
         try {
             // Get withdrawal details to send notification
-            const withdrawalDetails = await this.request(`withdrawal_requests?id=eq.${withdrawalId}&select=user_id,amount,currency`);
+            const withdrawalDetails = await this.request(`withdrawals?id=eq.${withdrawalId}&select=user_id,amount,currency`);
             if (withdrawalDetails && withdrawalDetails.length > 0) {
                 const withdrawal = withdrawalDetails[0];
                 await this.sendWithdrawalNotification(
@@ -706,7 +703,7 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        const response = await this.request(`withdrawal_requests?id=eq.${withdrawalId}`, {
+        const response = await this.request(`withdrawals?id=eq.${withdrawalId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 status: 'rejected',
@@ -719,7 +716,7 @@ class AdminAPI {
         // Send notification to user
         try {
             // Get withdrawal details to send notification
-            const withdrawalDetails = await this.request(`withdrawal_requests?id=eq.${withdrawalId}&select=user_id,amount,currency`);
+            const withdrawalDetails = await this.request(`withdrawals?id=eq.${withdrawalId}&select=user_id,amount,currency`);
             if (withdrawalDetails && withdrawalDetails.length > 0) {
                 const withdrawal = withdrawalDetails[0];
                 await this.sendWithdrawalNotification(
@@ -741,14 +738,14 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        return this.request('positions?select=*&order=created_at.desc');
+        return this.request('trading_signals?select=*&order=created_at.desc');
     }
 
     async getSignals() {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        return this.request('signals?select=*&order=created_at.desc');
+        return this.request('trading_signals?select=*&order=created_at.desc');
     }
 
     async getInvestmentTiers() {
@@ -773,7 +770,7 @@ class AdminAPI {
         const token = sessionStorage.getItem('adminToken');
         if (!token) throw new Error('Not authenticated');
 
-        return this.request(`audit_log?select=*&order=created_at.desc&limit=${limit}`);
+        return this.request(`support_tickets?select=*&order=created_at.desc&limit=${limit}`);
     }
 
     async getSupportTickets(status = 'all') {
@@ -861,7 +858,7 @@ class AdminAPI {
 
         try {
             // Create audit log without actor_user_id to avoid foreign key constraint
-            return this.request('audit_log', {
+            return this.request('support_tickets', {
                 method: 'POST',
                 body: JSON.stringify({
                     actor_user_id: null, // Set to null to avoid foreign key constraint
