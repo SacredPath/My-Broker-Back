@@ -170,26 +170,22 @@ GRANT ALL ON signals TO service_role;
 GRANT ALL ON audit_log TO service_role;
 
 -- 13. Insert some sample data for testing
-INSERT INTO deposit_requests (user_id, amount, currency, method, status, rejection_reason, reviewed_at) 
+INSERT INTO deposit_requests (user_id, amount, currency, method, status) 
 SELECT 
     user_id, 
     1000.00, 
     'USD', 
     'bank', 
-    'pending',
-    null,
-    now()
+    'pending'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO withdrawal_requests (user_id, amount, currency, method, status, reviewed_at, reviewed_by) 
+INSERT INTO withdrawal_requests (user_id, amount, currency, method, status) 
 SELECT 
     user_id,
     500.00, 
     'USD', 
     'crypto', 
-    'pending',
-    now(),
-    gen_random_uuid()
+    'pending'
 ON CONFLICT DO NOTHING;
 
 -- Output confirmation
