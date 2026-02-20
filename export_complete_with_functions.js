@@ -1,5 +1,5 @@
 // Complete Database Export including Functions, Triggers, and Deposit Methods
-const SUPABASE_URL = 'https://rfszagckgghcysgkomybc.supabase.co';
+const SUPABASE_URL = 'https://rfszagckgghcygkomybc.supabase.co';
 const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmc3phZ2NrZ2doY3lna29teWJjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTQ2MDE1NCwiZXhwIjoyMDg3MDM2MTU0fQ.5SltnkVX-Nl4744lTo_Z0Y58SSwQjXQCqnrCNi_uZuY';
 
 async function exportCompleteWithFunctions() {
