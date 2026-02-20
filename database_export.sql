@@ -1,6 +1,6 @@
 -- Database Export
 -- Generated: 2026-02-19T00:44:42.218Z
--- Project: https://ubycoeyutauzjgxbozcm.supabase.co
+-- Project: https://rfszagckgghcygkomybc.supabase.co
 
 -- Table: admin_users
 -- Columns: id, user_id, email, full_name, role, permissions, is_active, created_at, updated_at, last_login

@@ -1,6 +1,6 @@
 -- Complete Database Export with Schema + Data + Auth
 -- Generated: 2026-02-19T01:00:54.380Z
--- Project: https://ubycoeyutauzjgxbozcm.supabase.co
+-- Project: https://rfszagckgghcygkomybc.supabase.co
 -- Purpose: Full import to another Supabase instance including auth
 
 -- CREATE TABLE: admin_users

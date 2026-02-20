@@ -1,6 +1,6 @@
 -- Database Export
 -- Generated: 2026-02-19T00:49:24.084Z
--- Project: https://ubycoeyutauzjgxbozcm.supabase.co
+-- Project: https://rfszagckgghcygkomybc.supabase.co
 -- Tables: 20
 
 -- Table: admin_users
