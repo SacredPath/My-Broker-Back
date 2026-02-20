@@ -54,11 +54,11 @@ SELECT
     'Trigger/Function Check' as diagnosis_type,
     routine_name,
     routine_type,
-    created_at
+    created
 FROM information_schema.routines 
 WHERE routine_schema = 'public'
 AND (routine_name LIKE '%balance%' OR routine_name LIKE '%user%')
-ORDER BY created_at DESC
+ORDER BY created DESC
 LIMIT 10;
 
 -- Output diagnosis summary
