@@ -10,8 +10,8 @@ if (typeof window.__ENV === 'undefined') {
 }
 
 // Default to cloud Supabase configuration
-var DEFAULT_SUPABASE_URL = 'https://ubycoeyutauzjgxbozcm.supabase.co';
-var DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVieWNvZXl1dGF1empneGJvemNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MDYyOTIsImV4cCI6MjA4NDk4MjI5Mn0.NUqdlArOGnCUEXuQYummEgsJKHoTk3fUvBarKIagHMM';
+var DEFAULT_SUPABASE_URL = 'https://rfszagckgghcysgkomybc.supabase.co';
+var DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmc3phZ2NrZ2doY3lna29teWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NjAxNTQsImV4cCI6MjA4NzAzNjE1NH0.nrjT5YD3Bi-TSmONzRhPir3H4YNIFddDhR8xYOQnwPI';
 
 // Set default values if not already defined
 if (!window.__ENV.SUPABASE_URL) {
@@ -23,7 +23,7 @@ if (!window.__ENV.SUPABASE_ANON_KEY) {
 }
 
 if (!window.__ENV.SUPABASE_SERVICE_ROLE_KEY) {
-  window.__ENV.SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVieWNvZXl1dGF1empneGJvemNtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTQwNjI5MiwiZXhwIjoyMDg0OTgyMjkyfQ.16X2ssw9RgDw4QhF4x1KvilcbMUpqn00gBP0Ed7MCHc';
+  window.__ENV.SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmc3phZ2NrZ2doY3lna29teWJjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTQ2MDE1NCwiZXhwIjoyMDg3MDM2MTU0fQ.5SltnkVX-Nl4744lTo_Z0Y58SSwQjXQCqnrCNi_uZuY';
 }
 
 if (!window.__ENV.NODE_ENV) {

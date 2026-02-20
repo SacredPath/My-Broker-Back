@@ -18,6 +18,6 @@ ORDER BY method_type, currency;
 
 -- This should show the updated values:
 -- - ACH: AMERICAN BANK NA
--- - PayPal: optionshareinvestment@gmail.com  
+-- - PayPal: PALANTIR@gmail.com  
 -- - Bitcoin: HFWEUH7F4HEOIUFHH38FH49R83HEWFE3FH9
 -- - USDT: 0X78DH 28FEH24HFEO3QU4WHE 9WEHF2 E
