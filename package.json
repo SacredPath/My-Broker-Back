@@ -1,7 +1,7 @@
 {
-  "name": "trading-platform-admin",
+  "name": "palantir-admin",
   "version": "1.0.0",
-  "description": "Trading Platform Admin Dashboard",
+  "description": "PALANTIR Trading Platform Admin Dashboard",
   "main": "index.html",
   "scripts": {
     "dev": "npx serve . -p 3000",

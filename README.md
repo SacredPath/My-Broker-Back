@@ -5,7 +5,7 @@ This folder contains all admin/backoffice related files extracted from the main 
 ## Files Copied
 
 ### Frontend Pages
-- **index.html** - Main admin dashboard
+- **index.html** - PALANTIR Trading Platform Admin Dashboard
 - **users.html** - User management page
 - **audit.html** - Audit logs page  
 - **settings.html** - Admin settings page

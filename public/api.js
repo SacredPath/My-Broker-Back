@@ -1,5 +1,5 @@
 /**
- * Trading Platform Admin API
+ * PALANTIR Trading Platform Admin API
  * Clean REST API calls to Supabase - No edge functions, no complexity
  */
 class AdminAPI {

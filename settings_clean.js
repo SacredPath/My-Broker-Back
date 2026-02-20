@@ -6,7 +6,7 @@ class BackofficeSettings {
     constructor() {
         this.settings = {
             general: {
-                siteName: 'Trading Platform',
+                siteName: 'PALANTIR Trading Platform',
                 siteUrl: 'https://trading.example.com',
                 adminEmail: 'admin@trading.example.com',
                 maintenanceMode: false,
@@ -552,7 +552,7 @@ class BackofficeSettings {
         // Reset to default values
         this.settings = {
             general: {
-                siteName: 'Trading Platform',
+                siteName: 'PALANTIR Trading Platform',
                 siteUrl: 'https://trading.example.com',
                 adminEmail: 'admin@trading.example.com',
                 maintenanceMode: false,
