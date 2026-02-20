@@ -150,29 +150,14 @@ DROP POLICY IF EXISTS "Service role can access all audit_log" ON audit_log;
 CREATE POLICY "Service role can access all audit_log" ON audit_log
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
--- Grant permissions (with IF NOT EXISTS)
-DROP GRANT IF EXISTS ON profiles TO service_role;
+-- Grant permissions
 GRANT ALL ON profiles TO service_role;
-
-DROP GRANT IF EXISTS ON deposits TO service_role;
 GRANT ALL ON deposits TO service_role;
-
-DROP GRANT IF EXISTS ON withdrawals TO service_role;
 GRANT ALL ON withdrawals TO service_role;
-
-DROP GRANT IF EXISTS ON deposit_requests TO service_role;
 GRANT ALL ON deposit_requests TO service_role;
-
-DROP GRANT IF EXISTS ON withdrawal_requests TO service_role;
 GRANT ALL ON withdrawal_requests TO service_role;
-
-DROP GRANT IF EXISTS ON positions TO service_role;
 GRANT ALL ON positions TO service_role;
-
-DROP GRANT IF EXISTS ON signals TO service_role;
 GRANT ALL ON signals TO service_role;
-
-DROP GRANT IF EXISTS ON audit_log TO service_role;
 GRANT ALL ON audit_log TO service_role;
 
 -- Output confirmation
