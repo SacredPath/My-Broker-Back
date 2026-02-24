@@ -884,7 +884,7 @@ class AdminAPI {
         if (!token) throw new Error('Not authenticated');
 
         try {
-            const response = await this.request('rpc/trigger_daily_autogrowth', {
+            const response = await this.request('rpc/trigger_daily_autogrowth_test', {
                 method: 'POST',
                 body: JSON.stringify({})
             });
